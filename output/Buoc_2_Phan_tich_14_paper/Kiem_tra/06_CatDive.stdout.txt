@@ -1,0 +1,7 @@
+negative_sampling_probabilities= [0.433333, 0.3, 0.166667, 0.1]
+coverage_first= ['F']
+adjusted= {'A': 0.95, 'B': 0.93, 'C': 0.9, 'D': 0.88, 'E': 0.86} choose= A
+adjusted= {'B': 0.652741, 'C': 0.622741, 'D': 0.88, 'E': 0.86} choose= D
+final= ['A', 'D', 'F'] score= 2.63
+baseline HR,NDCG,ILD,category_cov= (0, 0, 0.0, 0.333333)
+pedagogical_rerank HR,NDCG,ILD,category_cov= (1, 0.63093, 1.0, 1.0)

@@ -1,0 +1,589 @@
+WEB EXTRACT - inspected 2026-11-15 - NOT a full raw source snapshot
+ (https://raw.githubusercontent.com/snudatalab/CatDive/main/README.md)
+ [wordlim: 200] Crawled: 3 days ago; Content type: text/plain; Source: open({"ref_id":"https://raw.githubusercontent.com/snudatalab/CatDive/main/README.md","lineno":null}); Total lines: 75
+L0: # CatDive: A Simple yet Effective Method for Maximizing Category Diversity in Sequential Recommendation
+L1: ![Overview of CatDive](Overview.png)
+L2: This project is a pytorch implementation of 'CatDive: A Simple yet Effective Method for Maximizing Category Diversity in Sequential Recommendation'.
+L3: CatDive achieves the state-of-the-art performance on real-world datasets, achieving up to 152.49% higher category diversity in the similar level of accuracy and up to 39.73% higher accuracy in the similar level of category diversity compared to the best competitor.
+L4: This project provides executable source code with adjustable arguments and preprocessed datasets used in the paper.
+L5: ## Prerequisites
+L6: 
+L7: - Python 3.8+
+L8: - [PyTorch](https://pytorch.org/)
+L9: - [NumPy](https://numpy.org/)
+L10: - [tqdm](https://tqdm.github.io/)
+L11: - [pandas](https://pandas.pydata.org)
+L12: ## Usage
+L13: You can run a demo script 'demo.sh' to evaluate the pretrained model of CatDive on all datasets with and without reranking.
+L14: The result looks as follows:
+L15: ```
+L16: dataset: books
+L17: model: a1_b0.6
+L18: average sequence length: 118.14
+L19: user num: 8685
+L20: item num: 9053
+L21: category num: 26
+L22: 100%|███████████████████| 8685/8685 [00:23<00:00, 363.01it/s]
+L23: 
+L24: ----- TEST (N=[10,20]) -----
+L25: 
+L26:  HR:	[0.1938 0.28  ]
+L27:  nDCG:	[0.1066 0.1284]
+L28:  ILD:	[0.5947 0.5952]
+L29:  cov:	[0.1213 0.1561]
+L30: 
+L31: dataset: books
+L32: model: a1_b0.6
+L33: average sequence length: 118.14
+L34: user num: 8685
+L35: item num: 9053
+L36: category num: 26
+L37: 100%|███████████████████| 8685/8685 [00:23<00:00, 363.01it/s]
+L38: 
+L39: lambda 0.1
+L40: ----- TEST (N=[10,20]) -----
+L41: 
+L42:  HR:	[0.1849 0.2695]
+L43:  nDCG:	[0.1041 0.126 ]
+L44:  ILD:	[0.6839 0.6746]
+L45:  cov:	[0.1562 0.2201]
+L46:  .
+L47:  .
+L48:  .
+L49: ```
+L50: You can also train the model by running 'main.py'.
+L51: There are 3 arguments you can change:
+L52: - dataset (books, kindle, gr-r)
+L53: - alpha (any number between 0 and 1)
+L54:     : alpha of Equation (?), controls multi-embedding
+L55: - beta (any number, -1 if random sampling)
+L56:     : beta of Equation (?), controls confidence in category-weighted high-confidence negative sampling
+L57: For example, you can train the model for Books dataset in 'catdive' directory with alpha of 0.5 and beta of 0.2  by following code:
+L58: ```
+L59: python main.py --dataset books --dir catdive --alpha 0.5 --beta 0.2
+L60: ```
+L61: 
+L62: 
+L63: You can test the model by running 'main.py' with the argument 'test' as 'True':
+L64: ```
+L65: python main.py --dataset books --dir catdive --alpha 0.5 --beta 0.2 --test True
+L66: ```
+L67: Make sure you put the directory excluding the name of dataset as argument 'dir'.
+L68: ## Datasets
+L69: Preprocessed data are included in the data directory.
+L70: | Name | #Users | #Items | #Interactions | #Categories | Download |
+L71: | --- | ---: | ---: | ---: | ---: | :---: |
+L72: | Amazon Books (books) | 8,685 | 9,053 | 1,043,391 | 26 |[Link](https://nijianmo.github.io/amazon/index.html)
+L73: | Amazon Kindle (kindle) | 8,530 | 10,057 | 438,541 | 17 | [Link](https://nijianmo.github.io/amazon/index.html)
+L74: | GoodReads Romance (gr-r)) | 4,864 | 4,964 | 608,816 | 44 | [Link](https://mengtingwan.github.io/data/goodreads.html)
+--------------------------------------------------------------------------------
+ (https://raw.githubusercontent.com/snudatalab/CatDive/main/src/main.py)
+ [wordlim: 200] Crawled: 3 days ago; Content type: text/plain; Source: open({"ref_id":"https://raw.githubusercontent.com/snudatalab/CatDive/main/src/main.py","lineno":null}); Total lines: 160
+L0: '''
+L1: ***********************************************************************
+L2: CatDive: A Simple yet Effective Method for Maximizing Category Diversity in Sequential Recommendation
+L3: 
+L4: This software may be used only for research evaluation purposes.
+L5: For other purposes (e.g., commercial), please contact the authors.
+L6: 
+L7: -----------------------------------------------------
+L8: File: main.py
+L9: - A main class for CatDive.
+L10: 
+L11: Version: 1.0
+L12: ***********************************************************************
+L13: '''
+L14: 
+L15: 
+L16: import os
+L17: import time
+L18: import torch
+L19: import argparse
+L20: from tqdm import tqdm
+L21: from model import SASRec
+L22: from utils import *
+L23: 
+L24: 
+L25: parser = argparse.ArgumentParser()
+L26: parser.add_argument('--dataset', default='books', type=str)
+L27: parser.add_argument('--dir', default='1', type=str)
+L28: parser.add_argument('--batch_size', default=128, type=int)
+L29: parser.add_argument('--lr', default=0.001, type=float)
+L30: parser.add_argument('--seed', default=3, type=int)
+L31: parser.add_argument('--hidden_units', default=128, type=int)
+L32: parser.add_argument('--num_blocks', default=2, type=int)
+L33: parser.add_argument('--num_epochs', default=10000, type=int)
+L34: parser.add_argument('--num_heads', default=1, type=int)
+L35: parser.add_argument('--dropout_rate', default=0.2, type=float)
+L36: parser.add_argument('--l2_emb', default=0.001, type=float)
+L37: parser.add_argument('--device', default='cuda', type=str)
+L38: parser.add_argument('--test', default=False, type=bool)
+L39: parser.add_argument('--topk', default=10, type=int)
+L40: parser.add_argument('--alpha', default=0, type=float) # alpha of Multi-Embedding (see Equation (3))
+L41: parser.add_argument('--beta', default=-1, type=float) # beta of Category-Weighted High-Confidence Negative Sampling (see Equation (7)), -1 if using random sampling
+L42: parser.add_argument('--lamb', default=0, type=float) # lambda of Coverage-Prioritized Reranking (see Equation (10))
+L43: 
+L44: 
+L45: args = parser.parse_args()
+L46: if not os.path.isdir('runs/'+args.dataset + '/' + args.dir):
+L47:     os.makedirs('runs/'+args.dataset + '/' + args.dir)
+L48: 
+L49: if args.dataset == 'books':
+L50:     args.maxlen = 50
+L51: elif args.dataset == 'kindle':
+L52:     args.maxlen = 50
+L53: elif args.dataset == 'gr-r':
+L54:     args.maxlen = 150
+L55: 
+L56: if __name__ == '__main__':
+L57:     setup_seed(args.seed)
+L58:     dataset = data_partition(args.dataset)
+L59:     [user_train, user_valid, user_test, usernum, itemnum, catenum, category, popularity] = dataset # loads data with category and popularity information
+L60:     num_batch = len(user_train) // args.batch_size
+L61:     cc = 0.0
+L62:     for u in user_train:
+L63:         cc += len(user_train[u])
+L64: 
+L65:     # prints data information
+L66:     print('\ndataset:', args.dataset)
+L67:     print('name:', args.dir)
+L68:     print('average sequence length: %.2f' % (cc / len(user_train)))
+L69:     print('user num:', usernum)
+L70:     print('item num:', itemnum)
+L71:     print('category num:', catenum)
+L72: 
+L73:     sampler = WarpSampler(user_train, usernum, itemnum, catenum, category, popularity, batch_size=args.batch_size, maxlen=args.maxlen, n_workers=4, beta=args.beta)
+L74: 
+L75:     model = SASRec(usernum, itemnum, catenum, category, args.num_blocks, args.num_heads, args.dropout_rate, args.hidden_units, args.maxlen, args.device, alpha=args.alpha).to(args.device)
+L76: 
+L77:     for name, param in model.named_parameters():
+L78:         try:
+L79:             torch.nn.init.xavier_normal_(param.data)
+L80:         except:
+L81:             pass
+L82: 
+L83:     model.train()
+L84: 
+L85:     epoch_start_idx = 1
+L86: 
+L87: 
+L88:     # train or test
+L89:     if args.test:
+L90:         f = open(os.path.join('runs/'+args.dataset + '/' + args.dir, 'log.txt'), 'a')
+L91:     else:
+L92:         f = open(os.path.join('runs/'+args.dataset + '/' + args.dir, 'log.txt'), 'w')
+L93: 
+L94:     bce_criterion = torch.nn.BCEWithLogitsLoss()
+L95:     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, betas=(0.9, 0.98))
+L96: 
+L97: 
+L98:     T = 0.0
+L99:     t0 = time.time()
+L100:     best = 0
+L101: 
+L102: 
+L103:     # training
+L104:     p = 0
+L105:     for epoch in range(epoch_start_idx, args.num_epochs + 1):
+L106:         if args.test: break
+L107:         for step in tqdm(range(num_batch)):
+L108:             u, seq, pos, neg = sampler.next_batch()
+L109:             u, seq, pos, neg = np.array(u), np.array(seq), np.array(pos), np.array(neg)
+L110:             pos_logits, neg_logits = model(seq, pos, neg)
+L111:             pos_labels, neg_labels = torch.ones(pos_logits.shape, device=args.device), torch.zeros(neg_logits.shape, device=args.device)
+L112:             optimizer.zero_grad()
+L113:             indices = np.where(pos != 0)
+L114:             loss = bce_criterion(pos_logits[indices], pos_labels[indices])
+L115:             loss += bce_criterion(neg_logits[indices], neg_labels[indices])
+L116:             for param in model.item_emb.parameters(): loss += args.l2_emb * torch.norm(param)
+L117:             if args.alpha:
+L118:                 for param in model.cate_emb.parameters(): loss += args.l2_emb * torch.norm(param)
+L119: 
+L120:             loss.backward()
+L121:             optimizer.step()
+L122: 
+L123: 
+L124:         print("loss in epoch {}: {}".format(epoch, loss.item()))
+L125: 
+L126:         if epoch % 1 == 0:
+L127:             model.eval()
+L128:             t1 = time.time() - t0
+L129:             T += t1
+L130:             print('Evaluating', end='')
+L131:             t_test = evaluate(model, dataset, args)
+L132:             print('epoch:%d, time: %f(s), valid (HR@10: %0.4f, nDCG@10: %0.4f, ILD@10: %0.4f, cov@10: %0.4f)'
+L133:                     % (epoch, T, t_test[0][0], t_test[1][0], t_test[2][0], t_test[3][0]))
+L134:             f.write('%0.4f\t%0.4f\t%0.4f\t%0.4f'
+L135:                     % (t_test[0][0], t_test[1][0], t_test[2][0], t_test[3][0]) + '\n')
+L136:             f.flush()
+L137:             t0 = time.time()
+L138:             model.train()
+L139: 
+L140:             if t_test[1][0] >= best:
+L141:                 best = t_test[1][0]
+L142:                 torch.save(model.state_dict(),  'runs/'+args.dataset + '/' + args.dir + '/model.pth')
+L143:                 p = 0
+L144:             else:
+L145:                 p += 1
+L146: 
+L147:             if p > 30:
+L148:                 f.write('Done')
+L149:                 break
+L150:     model.load_state_dict(torch.load('runs/'+args.dataset + '/' + args.dir + '/model.pth', map_location=torch.device(args.device)))
+L151:     model.eval()
+L152:     t_test = evaluate(model, dataset, args, test_f=True, lamb=args.lamb)
+L153:     if args.lamb:
+L154:         print('\nlambda', args.lamb)
+L155:         f.write('\nlambda %s' % (args.lamb))
+L156:     print('\n----- TEST (N=[10,20]) ----- \n\n HR:\t%s \n nDCG:\t%s \n ILD:\t%s \n cov:\t%s \n' % (np.round(t_test[0], 4), np.round(t_test[1], 4), np.round(t_test[2], 4), np.round(t_test[3], 4)))
+L157:     f.write('\n----- TEST (N=[10,20]) ----- \n\n HR:\t%s \n nDCG:\t%s \n ILD:\t%s \n cov:\t%s \n' % (np.round(t_test[0], 4), np.round(t_test[1], 4), np.round(t_test[2], 4), np.round(t_test[3], 4)))
+L158:     f.close()
+L159:     sampler.close()
+--------------------------------------------------------------------------------
+ (https://raw.githubusercontent.com/snudatalab/CatDive/main/src/utils.py)
+ [wordlim: 200] Crawled: 3 days ago; Content type: text/plain; Source: open({"ref_id":"https://raw.githubusercontent.com/snudatalab/CatDive/main/src/utils.py","lineno":null}); Total lines: 344
+L0: '''
+L1: ***********************************************************************
+L2: CatDive: A Simple yet Effective Method for Maximizing Category Diversity in Sequential Recommendation
+L3: 
+L4: This software may be used only for research evaluation purposes.
+L5: For other purposes (e.g., commercial), please contact the authors.
+L6: 
+L7: -----------------------------------------------------
+L8: File: utils.py
+L9: - (I2) Category-Weighted High-Confidence Negative Sampling of CatDive
+L10: - (I3) Coverage-Prioritized Reranking of CatDive
+L11: - Dataset preperation including evaluation.
+L12: 
+L13: Version: 1.0
+L14: ***********************************************************************
+L15: '''
+L16: 
+L17: 
+L18: import copy
+L19: import math
+L20: import torch
+L21: import random
+L22: import numpy as np
+L23: import pandas as pd
+L24: from collections import defaultdict, Counter
+L25: from multiprocessing import Process, Queue
+L26: from tqdm import tqdm
+L27: import itertools
+L28: 
+L29: 
+L30: def setup_seed(seed):
+L31:      torch.manual_seed(seed)
+L32:      torch.cuda.manual_seed_all(seed)
+L33:      np.random.seed(seed)
+L34:      random.seed(seed)
+L35:      torch.backends.cudnn.deterministic = True
+L36: 
+L37: 
+L38: '''
+L39: PROPOSED: Category-Weighted High-Confidence Negative Sampling of CatDive
+L40: 
+L41: input:
+L42: * beta: beta of Equation (7), controls the confidence of negative samples
+L43: * category: category of each item
+L44: * catenum: number of categories
+L45: * size: negative sample size
+L46: * ts: a set of items that the given user has interacted with
+L47: * itemnum: number of items
+L48: * popularity: popularity of each item
+L49: returns:
+L50: * neg_list: list of negative samples
+L51: '''
+L52: def catdive_ns(beta, category, catenum, size, ts, itemnum, popularity):
+L53: 
+L54:     score = np.array([0] * (itemnum+1), dtype=np.float32)
+L55: 
+L56:     category_pop = np.array(list(Counter(list(range(0, catenum+1)) + list(category[ts[:size]])).values()), dtype=np.float32)
+L57:     score = category_pop[category] # get number of interaction for each item's category
+L58:     score /= sum(score) # S_c(i)^cat
+L59:     score += beta * (popularity / sum(popularity)) # adds S_i^pop to final score
+L60: 
+L61:     score[ts] = 0
+L62:     score = score[1:]
+L63:     neg_list = random.choices(list(range(1, itemnum+1)), weights=score, k=size) # samples according to the final negative sampling score
+L64: 
+L65:     return neg_list
+L66: 
+L67: 
+L68: '''
+L69: Random Negative Sampling for original SASRec
+L70: 
+L71: input:
+L72: * size: negative sample size
+L73: * ts: a set of items that the given user has interacted with
+L74: * itemnum: number of items
+L75: returns:
+L76: * neg: negative samples
+L77: '''
+L78: def random_ns(itemnum, ts, size):
+L79:     neg = []
+L80:     count = 0
+L81:     while count < size:
+L82:         t = random.randint(1, itemnum)
+L83:         while t in ts:
+L84:             t = random.randint(1, itemnum)
+L85:         neg.append(t)
+L86:         count += 1
+L87:     return neg
+L88: 
+L89: 
+L90: '''
+L91: Sample function of all user sequences
+L92: 
+L93: input:
+L94: * user_train: interaction history of each user
+L95: * usernum: number of users
+L96: * itemnum: number of items
+L97: * catenum: number of categories
+L98: * category: category of each item
+L99: * popularity: popularity of each item
+L100: * batch_size: size of batch
+L101: * maxlen: maximum length of user sequence
+L102: * result_queue: queue to save sampling result
+L103: * beta: beta of Category-Weighted High-Confidence Negative Sampling (see Equation (7))
+L104: returns:
+L105: * a train batch
+L106: '''
+L107: def sample_function(user_train, usernum, itemnum, catenum, category, popularity, batch_size, maxlen, result_queue, beta):
+L108:     def sample():
+L109: 
+L110:         user = np.random.randint(1, usernum+1)
+L111:         while len(user_train[user]) <= 1: user = np.random.randint(1, usernum+1)
+L112: 
+L113:         ts = user_train[user]
+L114: 
+L115:         if len(ts) <= maxlen:
+L116:             zeros = [0] * (maxlen-len(ts)+1)
+L117:             seq = ts[:-1]
+L118:             pos = ts[1:]
+L119:             size = len(pos)
+L120:             seq = zeros + seq
+L121:             pos = zeros + pos
+L122:             if beta != -1:
+L123:                 neg = catdive_ns(beta, category, catenum, size, ts, itemnum, popularity)
+L124:             else:
+L125:                 neg = random_ns(itemnum, ts, size)
+L126:             neg = zeros + neg
+L127:         else:
+L128:             if maxlen == 5:
+L129:                 t = np.random.randint(maxlen, len(ts)-maxlen)
+L130:                 seq = ts[t-maxlen:t]
+L131:                 pos = ts[t-maxlen+1:t+1]
+L132:             else:
+L133:                 seq = ts[-(maxlen+1):-1]
+L134:                 pos = ts[-maxlen:]
+L135:             if beta != -1:
+L136:                 neg = catdive_ns(beta, category, catenum, maxlen, ts, itemnum, popularity)
+L137:             else:
+L138:                 neg = random_ns(itemnum, ts, maxlen)
+L139: 
+L140:         return (user, seq, pos, neg)
+L141: 
+L142:     while True:
+L143:         one_batch = []
+L144:         for i in range(batch_size):
+L145:             one_batch.append(sample())
+L146: 
+L147:         result_queue.put(zip(*one_batch))
+L148: 
+L149: 
+L150: '''
+L151: Wrap Sampler to get all train sequences with negative samples
+L152: 
+L153: input:
+L154: * user_train: interaction history of each user
+L155: * usernum: number of users
+L156: * itemnum: number of items
+L157: * catenum: number of categories
+L158: * category: category of each item
+L159: * popularity: popularity of each item
+L160: * batch_size: size of batch
+L161: * maxlen: maximum length of user sequence
+L162: * n_workers: number of workers to use in sampling
+L163: * cd_neg: aplha to control I3. Adjusted negative sampling
+L164: returns:
+L165: * user train sequences with negative samples
+L166: '''
+L167: class WarpSampler(object):
+L168:     def __init__(self, User, usernum, itemnum, catenum, category, popularity, batch_size=64, maxlen=10, n_workers=10, beta=-1):
+L169:         self.result_queue = Queue(maxsize=n_workers * 20)
+L170:         self.processors = []
+L171:         for i in range(n_workers):
+L172:             self.processors.append(
+L173:                 Process(target=sample_function, args=(User,
+L174:                                                       usernum,
+L175:                                                       itemnum,
+L176:                                                       catenum,
+L177:                                                       category,
+L178:                                                       popularity,
+L179:                                                       batch_size,
+L180:                                                       maxlen,
+L181:                                                       self.result_queue,
+L182:                                                       beta
+L183:                                                       )))
+L184:             self.processors[-1].daemon = True
+L185:             self.processors[-1].start()
+L186: 
+L187:     def next_batch(self):
+L188:         return self.result_queue.get()
+L189: 
+L190:     def close(self):
+L191:         for p in self.processors:
+L192:             p.terminate()
+L193:             p.join()
+L194: 
+L195: 
+L196: '''
+L197: Train and test data partition function
+L198: 
+L199: input:
+L200: * fname: file name of dataset
+L201: returns:
+L202: * train and test data with information of dataset
+L203: '''
+L204: def data_partition(fname):
+L205:     usernum = 0
+L206:     itemnum = 0
+L207:     User = defaultdict(list)
+L208:     user_train = {}
+L209:     user_valid = {}
+L210:     user_test = {}
+L211:     f = open('data/%s/ratings' % fname, 'r')
+L212:     for line in f:
+L213:         u, i = line.rstrip().split(' ')
+L214:         u = int(u)
+L215:         i = int(i)
+L216:         usernum = max(u, usernum)
+L217:         itemnum = max(i, itemnum)
+L218:         User[u].append(i)
+L219: 
+L220:     for user in User:
+L221:         user_train[user] = User[user][:-2]
+L222:         user_valid[user] = [User[user][-2]]
+L223:         user_test[user] = [User[user][-1]]
+L224: 
+L225:     # loads category and popularity information of items
+L226:     category = pd.read_csv('data/'+fname+'/category', header=None)
+L227:     category = np.concatenate(([0], category.to_numpy().flatten()))
+L228:     popularity = pd.read_csv('data/'+fname+'/popularity', header=None)
+L229:     popularity = np.concatenate(([0], popularity.to_numpy().flatten()))
+L230: 
+L231:     return [user_train, user_valid, user_test, usernum, itemnum, category.max(), category, popularity]
+L232: 
+L233: 
+L234: '''
+L235: Train and test data partition function
+L236: 
+L237: input:
+L238: * model: model to evaluate
+L239: * dataset: dataset to evaluate on
+L240: * args: model details
+L241: * test_f: true if test and false if validation
+L242: returns:
+L243: * HitRate
+L244: * nDCG
+L245: * Category Diversity
+L246: '''
+L247: def evaluate(model, dataset, args, test_f=False, lamb=0):
+L248:     [train, valid, test, usernum, itemnum, catenum, category, diversity] = copy.deepcopy(dataset)
+L249: 
+L250:     HT, ILD, nDCG, cov = np.array([0.0, 0.0]), np.array([0.0, 0.0]), np.array([0.0, 0.0]), np.array([0.0, 0.0])
+L251: 
+L252:     if not test_f:
+L253:         users = random.sample(range(1, usernum+1), 1000)
+L254:     else:
+L255:         users = range(1, usernum+1)
+L256: 
+L257:     for u in tqdm(users):
+L258:         if test_f:
+L259:             train[u] = train[u] + valid[u]
+L260:         seq = train[u][-args.maxlen:]
+L261:         if len(seq) != args.maxlen:
+L262:             zeros = np.zeros(args.maxlen-len(seq), dtype=np.int32)
+L263:             seq = np.concatenate((zeros, seq), dtype=np.int32)
+L264: 
+L265:         item_idx = np.array(list(set(range(1, itemnum+1))-set(train[u])))
+L266:         predictions = model.predict(np.array([seq]), item_idx)
+L267:         if test_f:
+L268:             for i, k in enumerate([10, 20]):
+L269:                 if lamb:
+L270:                     topk = catdive_rerank(predictions, item_idx, category, catenum, k, lamb)
+L271:                 else:
+L272:                     _, topk = torch.topk(predictions, k)
+L273:                     topk = np.array(item_idx)[topk.cpu()]
+L274: 
+L275:                 if test[u][0] in topk:
+L276:                     rank = np.where(topk == test[u][0])[0]
+L277:                     HT[i] += 1
+L278:                     nDCG[i] += 1.0 / np.log2(rank+2)
+L279: 
+L280:                 comb = np.array(list(itertools.combinations(category[topk], 2))).T # gets combination of all items' category
+L281:                 ILD[i] += len(np.where(comb[0]!=comb[1])[0]) / comb.shape[1]
+L282:                 cov[i] += len(set(category[topk])) / catenum
+L283:         else:
+L284:             _, topk = torch.topk(predictions, args.topk)
+L285:             topk = np.array(item_idx)[topk.cpu()]
+L286:             if valid[u][0] in topk:
+L287:                 rank = np.where(topk == valid[u][0])[0]
+L288:                 HT[0] += 1
+L289:                 nDCG[0] += 1.0 / np.log2(rank+2)
+L290: 
+L291:             comb = np.array(list(itertools.combinations(category[topk], 2))).T
+L292:             ILD[0] += len(np.where(comb[0]!=comb[1])[0]) / comb.shape[1]
+L293:             cov[0] += len(set(category[topk])) / catenum
+L294: 
+L295:     return HT / len(users),  nDCG / len(users), ILD / len(users), cov / len(users)
+L296: 
+L297: 
+L298: '''
+L299: PROPOSED: Coverage-Prioritized Reranking
+L300: 
+L301: input:
+L302: * predictions: predicted score of items
+L303: * item_idx: index of items predicted
+L304: * category: category information of items
+L305: * catenum: number of categories
+L306: * k: number of items to recommend
+L307: * lamb: lambda of Equation (10), controls the diversity of recommendation
+L308: returns:
+L309: * top-k recommendation
+L310: '''
+L311: def catdive_rerank(predictions, item_idx, category, catenum, k, lamb):
+L312:     score, index = torch.topk(predictions, 100)
+L313:     index = torch.tensor(item_idx[index.cpu()])
+L314:     unique_cat, counts = np.unique(category[index.cpu()], return_counts=True)
+L315:     top = []
+L316: 
+L317:     # selects items from the least popular categories of candidate items
+L318:     weights = np.zeros(catenum+1)
+L319:     unique_cat = unique_cat[np.argsort(counts)]
+L320:     for c in unique_cat[:int(k*lamb)]:
+L321:         choice = np.where(category[index.cpu()]==c)[0][0]
+L322:         top.append((index[choice], score[choice]))
+L323:         weights[category[choice]] += 1
+L324:     # rerank remaining candidate items according to the category distribution in current recommendation
+L325:     item_list = list(zip(index, score, category[index.cpu()]))
+L326:     cate_dict = defaultdict(int)
+L327:     while len(top) != k:
+L328:         max_index = 0
+L329:         max_score = item_list[0][1] - lamb * np.log(1+cate_dict[item_list[0][2]])
+L330:         for l in range(1, len(item_list)):
+L331:             if item_list[l][1] - lamb * np.log(1+cate_dict[item_list[l][2]]) > max_score:
+L332:                     max_index = l
+L333:                     max_score = item_list[l][1] - lamb * np.log(1+cate_dict[item_list[l][2]])
+L334:             elif item_list[l][1] < max_score:
+L335:                 break
+L336:         if item_list[max_index][0] not in [x[0] for x in top]:
+L337:             top.append((item_list[max_index][0], item_list[max_index][1]))
+L338:             cate_dict[item_list[max_index][2]] += 1
+L339:         item_list.pop(max_index)
+L340: 
+L341:     # sort the items in the recommedation list according to their original score before reranking
+L342:     top = sorted(top, key=lambda x: x[1], reverse=True)
+L343:     return torch.stack([x[0] for x in top], dim=0).cpu()
+

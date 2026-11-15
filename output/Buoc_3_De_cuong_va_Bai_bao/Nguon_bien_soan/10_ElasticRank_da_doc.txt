@@ -1,0 +1,126 @@
+CSE631  |  ĐỀ TÀI 07  |  BƯỚC 2
+PAPER 10ĐỌC, HIỂU VÀ PHÂN TÍCH
+Understanding Accuracy-Fairness Trade-offs in Re-ranking through Elasticity in Economics
+Chen Xu; Jujia Zhao; Wenjie Wang; Liang Pang; Jun Xu; Tat-Seng Chua; Maarten de Rijke
+ACM SIGIR 2025, tr. 539–548
+DOI: 10.1145/3726302.3730106  |  Bài/toàn văn  |  Code chính thức
+Hướng dẫn tiếng Việt cho người mới bắt đầu
+Từ bài toán, định nghĩa và công thức đến mã giả, ví dụ số, đọc code, thực nghiệm và hướng phát triển luận văn.
+Ngữ cảnh: accuracy–diversity–exposure balanced reranking; điều kiện dự kiến máy 16 GB RAM.
+Phạm vi kiểm chứng
+Đọc tài liệu và mã nguồn truy cập được; chạy các ví dụ giảng giải nhỏ. Chưa huấn luyện lại hoặc tái lập đầy đủ benchmark gốc. Ví dụ tự xây dựng và nhận xét độc lập được ghi nhãn trong nội dung.
+Các tệp mã kèm theo là phần đã đọc/trích xuất qua web; xem SOURCE.md để biết phần thiếu và link repo đầy đủ. Tài liệu không thay thế bài gốc và điều kiện sử dụng dữ liệu/mã nguồn.
+
+1. Bài báo và nguồn chính thức
+Chen Xu, Jujia Zhao, Wenjie Wang, Liang Pang, Jun Xu, Tat-Seng Chua và Maarten de Rijke, Understanding Accuracy-Fairness Trade-offs in Re-ranking through Elasticity in Economics, SIGIR 2025, trang 539–548. DOI https://doi.org/10.1145/3726302.3730106. Bản HTML https://arxiv.org/html/2504.14991v1; PDF https://arxiv.org/pdf/2504.14991; code https://github.com/XuChen0427/ElasticRank. Nguồn kiểm tra ngày 15/11/2026.
+Tài liệu này hướng dẫn đọc phương pháp và xây dựng benchmark cho luận văn. Các định nghĩa, kết quả gốc được chỉ rõ vị trí; tính toán toy và phản biện là phân tích riêng. File toy đã được chạy để kiểm tra đại số. Chưa thực hiện huấn luyện MF hoặc tái lập kết quả Steam, Amazon, Yelp của bài.
+Điểm chính: ElasticRank điều chỉnh điểm theo utility đã tích lũy của nhóm item. Nó là một baseline gần với đề tài exposure reranking, nhưng utility trong bài được tính từ score của mô hình. Vì vậy phải phân biệt cân bằng utility dự báo với cân bằng số lần hiển thị thật.
+2. Chuẩn bị kiến thức và bản đồ đọc
+Trước tiên cần biết top-K, vector score, nhóm item, normalization và đạo hàm. Sau đó học đường đồng mức: tập điểm có cùng giá trị hàm. Đạo hàm riêng biểu diễn mức hàm thay đổi khi một thành phần tăng; tỷ số đạo hàm cho biết hai hướng có thể đánh đổi nhau ở mức nào.
+Hình dung chỉ có hai nhóm: sản phẩm phổ biến và ít phổ biến. Một slot chuyển từ nhóm phổ biến sang nhóm ít phổ biến có thể làm mất rất ít relevance nếu hai ứng viên gần điểm nhau. Nhưng nếu ứng viên thay thế có điểm quá thấp, cùng một chuyển exposure phải trả giá lớn hơn. Do vậy một chính sách hỗ trợ nhóm không nên được đánh giá chỉ bằng một con số công bằng tách khỏi chi phí accuracy.
+Đọc Mục 3.1 để hiểu utility, Mục 5.2 để hiểu thuật toán, rồi xem ElasticRank.py. Sau đó quay lại Mục 4 và Phụ lục A–C. Cách đọc này giúp người mới phân biệt công thức nhằm phân tích metric với công thức thực sự dùng để chọn item.
+3. Đầu vào, đầu ra và phạm vi fairness
+Đầu vào là ma trận relevance score của user và item, ánh xạ item sang nhóm, K, các tham số hiệu chỉnh và thứ tự user. Đầu ra là danh sách K item mỗi user. Trạng thái utility của nhóm được cập nhật sau mỗi user, vì vậy hai thứ tự user khác nhau có thể đưa đến kết quả khác nhau dù score giống hệt.
+Trong bài, mỗi item thuộc một nhóm duy nhất. Nhóm có thể là publisher của trò chơi hoặc category của item. Nếu MovieLens có nhiều genres, không được tùy tiện áp một-hot mapping rồi quên công bố quy tắc. Có thể chọn primary genre, phân bổ fraction qua nhiều genre hoặc nghiên cứu multi-label variant; mỗi lựa chọn làm thay đổi định nghĩa utility và baseline.
+Reranker chỉ lựa chọn trong miền ứng viên được cung cấp. Nếu mục tiêu là tăng exposure long-tail mà top-100 của backbone không có long-tail, hệ thống cần thay đổi candidate generation hoặc nới pool. Khi so thuật toán phải khóa cùng pool, nếu không lợi ích có thể đến từ khả năng nhìn thấy thêm item chứ không phải cơ chế ElasticRank.
+4. Quan hệ với công trình trước và khoảng trống
+TaxRank, SIGIR 2024, đã sử dụng góc nhìn thuế và tối ưu phân bổ utility bằng optimal transport. P-MMF, WWW 2023, hỗ trợ nhóm yếu nhất bằng phương pháp đối ngẫu. FairRec/FairRec+ dùng phân bổ exposure với tiêu chí fairness. CPFair phối hợp mục tiêu người dùng và nhà sản xuất. ElasticRank thêm cách diễn giải elasticity và EF-Curve, đồng thời xây dựng quy tắc score correction nhẹ.
+Đây là lý do không nên phát biểu luận văn “phạt nhóm phổ biến, thưởng nhóm ít phổ biến” như một ý tưởng mới tự thân. Muốn có đóng góp cần chỉ ra điều kiện, formalism hoặc bằng chứng khác: exposure chiết khấu vị trí, độ bất định popularity, hard constraint diversity hoặc tính ổn định dưới arrival shift.
+Khoảng trống có điều kiện có thể là: khi giữ nguyên ngân sách mất held-out NDCG, liệu một bộ điều khiển exposure có xét bất định giúp ổn định fairness qua thời gian tốt hơn ElasticRank hay không? Câu này không mặc định câu trả lời có lợi và có baseline gần để bác bỏ.
+5. Từ điển ký hiệu
+Ký hiệu
+Cách hiểu
+U, I, G
+Tập user, item, nhóm
+I_g, g(i)
+Các item của nhóm g; nhóm của item i
+s_ui
+Relevance score gốc của user u với item i
+L_K(u)
+Danh sách K item cuối
+v_g
+Utility tích lũy của nhóm g
+w_u
+Tổng score các item được chọn cho user u
+vbar_g
+v_g chia tổng utility của mọi nhóm
+f(v;t)
+Một thành viên họ metric fairness, tham số t
+t
+Tham số điều chỉnh độ nhạy/độ cong
+E_rp
+Tỷ số/đạo hàm độ co giãn giữa hai nhóm, cần nêu hướng
+a, eta
+Nhóm neo và phân vị dùng chọn neo trong thuật toán
+d(g,a)
+Hiệu chỉnh khoảng cách/điểm cho nhóm g so với neo
+lambda
+Hệ số correction trong mã tác giả
+M, Z
+Biên tích phân hữu hạn và hệ số chuẩn hóa EF
+NDCG_score
+Ký hiệu tài liệu này dùng cho score retention của bài
+NDCG_test
+Ký hiệu tài liệu này dùng cho relevance nhãn kiểm thử
+
+Ký hiệu eta bị dùng trong phần giải tích và chọn anchor theo các ngữ cảnh khác nhau. Khi tự hiện thực nên dùng tên anchor_rate cho phân vị để tránh vô tình dùng một vector gradient như một số tỷ lệ. Tương tự, lambda trong code nên được ghi lại trong config; không giả định mô tả phương trình đã chứa mọi tham số triển khai.
+6. Utility, elasticity và EF-Curve
+Công thức (1) định nghĩa v_g bằng tổng score của những item thuộc nhóm g đã được chọn qua các user. w_u là tổng score của danh sách user u. Ví dụ chọn hai item nhóm A có score 0,9 và 0,8 thì v_A tăng 1,7; không phải tăng hai đơn vị exposure. Muốn đếm exposure, phải thay cách cộng và gọi đó là biến thể.
+Công thức (3) trình bày họ metric:
+vbar_g = v_g / sum_h v_hf(v;t) = sign(1-t) * (sum_g vbar_g^(1-t))^(1/t).
+Bài gắn họ hàm với các yêu cầu liên tục, scale invariance và khả năng tổng hợp phân tán. Không hiểu thành mọi khái niệm fairness trong mọi ứng dụng đều thuộc công thức này. Các trường hợp t=0 hoặc t=1 cần giới hạn/quy ước; thay trực tiếp vào biểu thức có thể chia 0 hoặc tạo biểu thức suy biến. Nếu dùng code đo EF, phải kiểm tra cách xử lý điểm đặc biệt.
+EF-Curve đặt t trên trục ngang và fairness score trên trục dọc. EF là tích phân trên đoạn [1−M,1+M], chuẩn hóa bởi Z=2M|G| theo (5). Nó khảo sát một họ quan niệm fairness thay vì một giá trị cố định. Nhưng EF vẫn phụ thuộc họ hàm, biên tích phân, quy tắc số học và normalization; không phải một chuẩn trung lập vượt mọi định nghĩa fairness.
+Ở (2) và (4), cách ghi chỉ số và chiều đạo hàm trên bản v1 cần được đọc cẩn thận. Một chỗ dùng đạo hàm của v_r theo v_p, chỗ khác dùng v_p theo v_r. Hai số là nghịch đảo trong trường hợp khả vi phù hợp. Khi giải thích ví dụ nhóm giàu/nghèo, hãy nói rõ đang tính tỷ số nào thay vì đổi 1/3 thành 3 mà không thông báo.
+7. Đi theo phần chứng minh mà không gán quá mức
+Phụ lục A dẫn các tiên đề và kết quả về Kolmogorov–Nagumo mean/power family để xây dựng dạng f. Đó là một kết quả có điều kiện trên lớp hàm và giả định nêu trong bài. Với luận văn, nên trích rõ các giả định thay vì chỉ ghi “tác giả chứng minh metric duy nhất”. Không cần sao chép toàn bộ chứng minh của tài liệu nền nếu mục tiêu chỉ sử dụng baseline.
+Một bước có thể tự kiểm tra là tỷ số đạo hàm theo tọa độ chuẩn hóa. Với t khác điểm đặc biệt và mọi vbar_g>0, đạo hàm của f theo vbar_g có thừa số chung và thừa số vbar_g^(−t). Chia đạo hàm theo r cho đạo hàm theo p, thừa số chung triệt tiêu, còn (vbar_r/vbar_p)^(−t). Đây là bước đại số giúp hiểu vì sao nhóm có utility khác nhau nhận độ nhạy khác nhau. Nếu đảo tử/mẫu, tỷ số đảo.
+Ví dụ vbar_r=0,75 và vbar_p=0,25, t=1 trong tỷ số giới hạn: đạo hàm tương đối của r so với p là 1/3; đạo hàm của p so với r là 3. Trực giác là một đơn vị utility của nhóm yếu được đánh giá cao hơn theo chính sách fairness này. Điều đó chưa chứng minh thay item cụ thể nào là tối ưu, vì item còn mang score và giới hạn candidates.
+Phụ lục C phân tích liên hệ giữa mục tiêu accuracy cộng fairness và dạng mục tiêu nhân, sau đó dùng gradient để diễn giải chi phí chuyển từ fairness sang accuracy. Cần phân biệt diễn giải trên miền utility liên tục với bài toán chọn tập item rời rạc. Không suy ra rằng thuật toán greedy/online của repo luôn tìm Pareto frontier thật cho mọi candidate pool.
+Đây cũng không phải mô hình kinh tế nhân quả của người bán và người mua thật. Bài thừa nhận bối cảnh reranking tĩnh đơn giản hơn giao dịch có thuế, tiết kiệm và hàng hóa công cộng. Một score correction không chứng minh doanh thu người bán thay đổi cùng tỷ lệ với đại lượng elasticity trong công thức.
+8. Thuật toán thực thi và ánh xạ vào mã
+File chính đã đọc trực tiếp là ElasticRank.py, lớp ElasticRank, hàm rerank. Hai hàm phụ concave_func và distance_concave_func tính hiệu chỉnh. Code khởi tạo utility mỗi nhóm bằng 1, chọn anchor qua anchor_rate, chuẩn hóa utility, cộng correction theo ma trận membership M, chọn top-K và cộng score gốc vào utility nhóm.
+Phép toán trong code đã kiểm tra có dạng:
+q = V / sum(V)anchor = nhóm tại phân vị anchor_rate khi sắp V tăng dầncorrection_g = (q_anchor^(1-t) - q_g^(1-t)) * (1-t) * q_g^(-t)adjusted_ui = score_ui + lambda * correction_g(i)V_g = V_g + tổng score gốc của item nhóm g vừa được chọn
+Ví dụ dưới đây đi theo phép toán code này. Công thức (10) trên HTML trình bày xấp xỉ khoảng cách cong với ký hiệu không hoàn toàn trùng biểu thức triển khai; khi tái lập cần đối chiếu đúng phiên bản PDF và commit. Không âm thầm sửa code theo cách mình cho là đúng rồi vẫn gắn nhãn “original”.
+Khởi tạo bằng 1 là smoothing để tránh lũy thừa số 0; nó cũng làm các lượt đầu ít lệch hơn. Nếu thay bằng 0 phải thêm quy tắc cho số 0 và đo tác động. Trong code B_t theo dõi count nhưng biến V_t chứa score mới là trạng thái dùng để correction. Nhầm hai biến sẽ biến thuật toán thành một phương pháp khác.
+9. Mã giả đầy đủ một lượt và chi phí
+V[g] = 1 cho mọi nhómfor u theo trình tự đã lưu:    chọn anchor từ V    q = chuẩn hóa V    tính correction vector của mọi nhóm    cộng correction vào score từng item theo membership    chọn K item có điểm sau điều chỉnh cao nhất    cập nhật V bằng score gốc của các item vừa chọnreturn tất cả danh sách
+Với n candidates và G nhóm, cần tính correction, ánh xạ nhóm, chọn top-K và cập nhật trạng thái. Nếu sort đầy đủ, phần sort có O(n log n); có thể dùng partial selection nhưng phải đo cả thời gian tạo score và membership. Không thể chỉ báo số phép tính correction rồi gọi toàn bộ pipeline miễn phí.
+Nếu dùng ma trận membership dày n×G, bộ nhớ tăng theo cả n và G. Với một nhóm mỗi item, ánh xạ integer có thể tiết kiệm; đây là tối ưu triển khai cần giữ cùng thuật toán. Khi benchmark CPU nên đo cả phương án tác giả và phương án tối ưu với mô tả rõ.
+10. Ví dụ nguyên bản và toy số tự xây dựng
+Bài gốc có Hình 3 với hai nhóm utility 1 và 3 để giải thích chính sách hỗ trợ nhóm yếu. Ví dụ đó là trực giác elasticity, không phải bộ dữ liệu để kết luận accuracy thật. Sau đây là toy tự xây dựng, dùng công thức code để kiểm tra một luồng reranking cụ thể.
+Có item A1,A2 thuộc A; B1,B2 thuộc B. User 1 có score [0,90;0,85;0,70;0,65]. User 2 có [0,89;0,84;0,80;0,75]. K=2, t=2, lambda=0,2, anchor_rate=0,5, V ban đầu [1,1]. Lượt đầu q=[0,5;0,5], correction bằng 0; chọn A1,A2. V thành [2,75;1].
+Lượt hai q_A=2,75/3,75=0,733333; q_B=0,266667. Anchor là A. Correction A bằng 0. Vì 1−t=−1, correction B=(1/0,733333−1/0,266667)×(−1)×0,266667^(−2)=33,558239. Cộng lambda×correction làm B1/B2 vượt A1/A2, nên chọn B1,B2. V cuối [2,75;2,55].
+Hiệu chỉnh rất lớn trong ví dụ vì dùng t=2 và q_B nhỏ. Đây là cố ý để thấy độ nhạy; không phải gợi ý một cấu hình triển khai. Người học nên giảm lambda rồi tìm ngưỡng thứ tự bắt đầu đổi. Bài tập này giúp hiểu vì sao cần sweep tham số và kiểm tra outliers.
+User 2 giữ tổng score chiết khấu bằng khoảng 0,896630 của danh sách gốc. Nếu positive test thật là A1,A2 thì danh sách B1,B2 có NDCG_test=0. Một metric giữ gần score và một metric dựa relevance thật có thể khác rất mạnh. Chạy python3 Vi_du_chay_tay/10_ElasticRank.py để kiểm tra các số này; file không dùng dữ liệu thực và không huấn luyện MF.
+11. Môi trường, code và cách bắt đầu tái lập
+README chỉ dẫn python main.py --train_config_file=train_Reranking.yaml. Repo có ElasticRank.py, Abstract_Reranker.py, metric.py, config và mẫu Steam. README cũng cho biết thuật toán đã được tích hợp trong FairDiverse. Nội dung ElasticRank.py đã đọc qua raw URL; các file chưa đọc đủ không được mô tả như đã audit.
+python main.py --train_config_file=train_Reranking.yaml
+Bài dùng Python 3.9 trên Ubuntu 18.04. Lệnh trên là lệnh README, chưa chạy trong lần biên soạn. Cần môi trường dependencies tương ứng và input score/membership hợp lệ trước. Ghi chú nguồn ở Ma_nguon/10_ElasticRank/SOURCE.md không phải bản clone hoàn chỉnh. Không có đảm bảo environment cũ tương thích Python hiện tại.
+Để dùng trong luận văn, hãy huấn luyện BPR trên split của chính mình, xuất cùng top-N candidates cho mọi reranker, lưu score và item IDs. Sau đó chạy no-rerank, MMR, penalty popularity và ElasticRank. Nếu import từ FairDiverse thay repo riêng, lưu version/commit và kiểm tra xem default normalization, initialization có thay đổi không.
+12. Thiết kế thí nghiệm và kết quả được công bố
+Mục 6.1 dùng Steam, Amazon Digital Music, Yelp. Steam có 4.446 user, 1.238 item, 43 publisher groups, 169.030 tương tác; Amazon 3.175 user, 3.766 item, 26 nhóm, 11.320 tương tác; Yelp 8.198 user, 6.429 item, 64 nhóm, 702.457 tương tác. Nhóm ít hơn 10 item được gộp. Global chronology: 80% đầu huấn luyện MF, 20% sau dùng đánh giá rerank.
+Baseline: FairRec, FairRec+, Welf, CPFair, P-MMF, min-regularizer, TaxRank. Metric: NDCG_score, Loss, EF ở K=5/10/20 và inference time. Công thức (11) dùng score MF làm gain và chuẩn hóa bằng ranking gốc, nên NDCG_score gần 1 đo mức giữ utility dự báo. Luận văn phải bổ sung NDCG_test/Recall_test theo held-out positives.
+Bảng 2, Steam@10: ElasticRank NDCG_score=0,9948; EF=−0,8283; P-MMF=0,9890 và −0,9228. Yelp@10: ElasticRank=0,9918 và −0,4211; P-MMF=0,9923 và −0,4379. EF lớn hơn, tức ít âm hơn, là tốt hơn theo định nghĩa bài. Không nói ElasticRank hơn mọi baseline ở từng metric riêng chỉ từ tên một hàng.
+Mục 6.3.2 báo độ lớn tăng tốc khoảng một bậc so Welf, hai bậc so P-MMF trong thiết lập Steam@10. Đây là kết quả thiết lập đó, không phải lời hứa 10×/100× trên máy 16 GB của người học. Cần đo lại latency p50/p95 và peak RAM trong benchmark thống nhất.
+13. Đóng góp, giới hạn và hướng nghiên cứu có thể kiểm chứng
+Tác giả đóng góp diễn giải economic elasticity, EF-Curve/EF và ElasticRank. Giới hạn do tác giả thảo luận: kinh tế thực phức tạp hơn setting reranking tĩnh. Nhận xét độc lập: utility dựa score cần kiểm chứng relevance; không có ràng buộc ILD; grouping, smoothing và thứ tự user ảnh hưởng trạng thái; bản v1 cần audit ký hiệu và biểu thức code khi tái lập.
+Hướng A: position-aware exposure với diversity constraint. So ElasticRank gốc, ElasticRank đổi utility, MMR và phương pháp đề xuất. Ablation bỏ diversity/bỏ exposure control. Bác bỏ nếu cải thiện biến mất khi mọi phương pháp dùng cùng exposure metric và cùng accuracy budget.
+Hướng B: độ bất định popularity. Ước lượng utility hoặc head/tail từ train bằng bootstrap/interval, giảm thưởng cực đoan cho nhóm có ít quan sát. So smoothing cố định, clipping correction và phương pháp mới. Bác bỏ nếu clipping đơn giản tốt tương đương mà rẻ hơn.
+Hướng C: ổn định arrival order. Chạy nhiều hoán vị user và chronological arrival; báo phân bố Gini/EF/NDCG, cumulative violations. So cập nhật từng user với cập nhật theo batch. Bác bỏ nếu phương pháp mới chỉ tốt với thứ tự thuận lợi hoặc làm fairness trễ ở thời điểm policy thay đổi.
+14. Tài liệu tham khảo và câu hỏi tự kiểm tra
+ElasticRank: nguồn Mục 1; code đọc tại https://raw.githubusercontent.com/XuChen0427/ElasticRank/master/ElasticRank.py.
+TaxRank: https://doi.org/10.1145/3626772.3657766.
+P-MMF: https://doi.org/10.1145/3543507.3583296.
+CPFair: https://doi.org/10.1145/3477495.3531959.
+FairRec: https://doi.org/10.1145/3366423.3380196.
+FairDual: https://arxiv.org/abs/2502.09319.
+FairDiverse: https://github.com/XuChen0427/FairDiverse.
+Ba câu tự kiểm tra: vì sao score-based utility khác exposure count; vì sao tỷ số đạo hàm 1/3 và 3 có thể cùng xuất hiện khi đảo hướng; vì sao NDCG_score≈0,99 không cho phép kết luận mô hình gợi đúng 99% item. Trả lời rõ ba câu này sẽ giúp tránh những kết luận sai quan trọng khi viết related work và thực nghiệm.
+Phụ lục A. Danh mục trích dẫn chuẩn hóa
+Các mục dưới đây ghi đủ tên công trình, năm/nơi công bố và link để tra cứu. Gồm bài chính và tài liệu đối chiếu cho luận văn; không khẳng định mọi mục đều nằm trong bibliography của bài gốc. Mã A1, A2… chỉ dùng trong phụ lục của tài liệu này.
+[A1] Chen Xu, Jujia Zhao, Wenjie Wang, Liang Pang, Jun Xu, Tat-Seng Chua, Maarten de Rijke. Understanding Accuracy-Fairness Trade-offs in Re-ranking through Elasticity in Economics. ACM SIGIR 2025, tr. 539–548. DOI 10.1145/3726302.3730106. Bài/toàn văn; code.
+[A2] Jingzhi Li, Zhiyong Cheng, Richang Hong, Meng Wang. Post-hoc Provider Fairness Adaptation via Hierarchical Exposure Alignment. ACM SIGIR 2026. DOI 10.1145/3805712.3809597. Bài/toàn văn; code.
+[A3] Chen Xu, Yuxin Li, Wenjie Wang, Liang Pang, Jun Xu, Tat-Seng Chua. Bridging Jensen Gap for Max-Min Group Fairness Optimization in Recommendation. ICLR 2025, conference paper. Bài/toàn văn; code.
+[A4] Theresia Veronika Rampisela, Tuukka Ruotsalo, Maria Maistro, Christina Lioma. Joint Evaluation of Fairness and Relevance in Recommender Systems with Pareto Frontier. ACM The Web Conference 2025, tr. 1548–1566. DOI 10.1145/3696410.3714589. Bài/toàn văn; code.
+[A5] Steffen Rendle, Christoph Freudenthaler, Zeno Gantner, Lars Schmidt-Thieme. BPR: Bayesian Personalized Ranking from Implicit Feedback. UAI 2009, 460–469. PMLR và PDF.

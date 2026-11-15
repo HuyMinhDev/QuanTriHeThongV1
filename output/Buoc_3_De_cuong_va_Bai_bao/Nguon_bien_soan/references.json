@@ -1,0 +1,386 @@
+[
+  {
+    "id": 1,
+    "authors": "Jingzhi Li; Zhiyong Cheng; Richang Hong; Meng Wang",
+    "title": "Post-hoc Provider Fairness Adaptation via Hierarchical Exposure Alignment",
+    "venue": "ACM SIGIR 2026",
+    "year": 2026,
+    "doi": "10.1145/3805712.3809597",
+    "url": "https://arxiv.org/html/2605.01524v1",
+    "code": "https://github.com/Tam-JQK/Post-train",
+    "status": "published venue identified"
+  },
+  {
+    "id": 2,
+    "authors": "Raciel Yera; Luis Martínez",
+    "title": "Behind the Re-Rank: Explaining Fairness in Top-N Recommendations",
+    "venue": "ACM UMAP 2026, tr. 21–29",
+    "year": 2026,
+    "doi": "10.1145/3774935.3806165",
+    "url": "https://ruja.ujaen.es/server/api/core/bitstreams/78628cee-deca-474f-9dad-ca0bd6fc0e8c/content",
+    "code": "https://github.com/ryera/fairness-explanation-topn",
+    "status": "published venue identified"
+  },
+  {
+    "id": 3,
+    "authors": "Célina Treuillier; Sylvain Castagnos; Evan Dufraisse; Özlem Özgöbek; Armelle Brun",
+    "title": "Shift your Focus for the Greater Good: Improving Fairness at no cost for Accuracy and Diversity in News Recommender Systems",
+    "venue": "ACM Transactions on Recommender Systems 4(3), Article 44, 1–36; online 05/03/2026",
+    "year": 2026,
+    "doi": "10.1145/3790097",
+    "url": "https://doi.org/10.1145/3790097",
+    "code": "https://github.com/celinatreuillier/ADF_framework",
+    "status": "published venue identified"
+  },
+  {
+    "id": 4,
+    "authors": "Theresia Veronika Rampisela; Maria Maistro; Tuukka Ruotsalo; Falk Scholer; Christina Lioma",
+    "title": "Relevance-aware Individual Item Fairness Measures for Recommender Systems: Limitations and Usage Guidelines",
+    "venue": "ACM Transactions on Recommender Systems 4(3), Article 37, 45 trang; online 05/03/2026",
+    "year": 2026,
+    "doi": "10.1145/3765624",
+    "url": "https://doi.org/10.1145/3765624",
+    "code": "https://github.com/theresiavr/relevance-aware-item-fairness-measures-recsys",
+    "status": "published venue identified"
+  },
+  {
+    "id": 5,
+    "authors": "Rikiya Takehi; Fernando Diaz; Tetsuya Sakai",
+    "title": "Diversification as Risk Minimization",
+    "venue": "ACM WSDM 2026, tr. 618–628",
+    "year": 2026,
+    "doi": "10.1145/3773966.3777985",
+    "url": "https://arxiv.org/html/2510.22681v1",
+    "code": "https://github.com/RikiyaT/VRisk",
+    "status": "published venue identified"
+  },
+  {
+    "id": 6,
+    "authors": "Jaeri Lee; Jongjin Kim; U Kang",
+    "title": "CatDive: A simple yet effective method for maximizing category diversity in sequential recommendation",
+    "venue": "PLOS ONE 21(1), e0341419; 30/01/2026",
+    "year": 2026,
+    "doi": "10.1371/journal.pone.0341419",
+    "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0341419",
+    "code": "https://github.com/snudatalab/CatDive",
+    "status": "published venue identified"
+  },
+  {
+    "id": 7,
+    "authors": "Kazuma Onishi; Katsuhiko Hayashi; Hidetaka Kamigaito",
+    "title": "Accurate and Diverse Recommendations via Propensity-Weighted Linear Autoencoders",
+    "venue": "ACM SIGIR-AP 2025; công bố 06/12/2025",
+    "year": 2025,
+    "doi": "10.1145/3767695.3769512",
+    "url": "https://arxiv.org/html/2512.20896v1",
+    "code": "https://github.com/cars1015/IPS-LAE",
+    "status": "published venue identified"
+  },
+  {
+    "id": 8,
+    "authors": "Diego Carraro; Derek Bridge",
+    "title": "Enhancing Recommendation Diversity by Re-ranking with Large Language Models",
+    "venue": "ACM Transactions on Recommender Systems 4(2), Article 18, 1–40; trang publisher hiển thị 22/11/2025",
+    "year": 2025,
+    "doi": "10.1145/3700604",
+    "url": "https://arxiv.org/html/2401.11506v2",
+    "code": "https://github.com/cdiego89phd/chat-reranking",
+    "status": "published venue identified"
+  },
+  {
+    "id": 9,
+    "authors": "Amanda Aird; Elena Štefancová; Anas Buhayh; Cassidy All; Martin Homola; Nicholas Mattei; Robin Burke",
+    "title": "Integrating Individual and Group Fairness for Recommender Systems through Social Choice",
+    "venue": "ACM RecSys 2025, tr. 177–186; 07/09/2025",
+    "year": 2025,
+    "doi": "10.1145/3705328.3748087",
+    "url": "https://doi.org/10.1145/3705328.3748087",
+    "code": "https://github.com/that-recsys-lab/individual_fair_recsys2025",
+    "status": "published venue identified"
+  },
+  {
+    "id": 10,
+    "authors": "Chen Xu; Jujia Zhao; Wenjie Wang; Liang Pang; Jun Xu; Tat-Seng Chua; Maarten de Rijke",
+    "title": "Understanding Accuracy-Fairness Trade-offs in Re-ranking through Elasticity in Economics",
+    "venue": "ACM SIGIR 2025, tr. 539–548",
+    "year": 2025,
+    "doi": "10.1145/3726302.3730106",
+    "url": "https://arxiv.org/html/2504.14991v1",
+    "code": "https://github.com/XuChen0427/ElasticRank",
+    "status": "published venue identified"
+  },
+  {
+    "id": 11,
+    "authors": "Kiryl Liakhnovich; Oleg Lashinin; Andrei Babkin; Michael Pechatov; Marina Ananyeva",
+    "title": "SMMR: Sampling-Based MMR Reranking for Faster, More Diverse, and Balanced Recommendations and Retrieval",
+    "venue": "ACM SIGIR 2025, short paper, tr. 2754–2758",
+    "year": 2025,
+    "doi": "10.1145/3726302.3730250",
+    "url": "https://www.hse.ru/data/2025/07/04/1995597406/%D0%90%D0%BD%D0%B0%D0%BD%D1%8C%D0%B5%D0%B2%D0%B0_%D1%81%D1%82%D0%B0%D1%82%D1%8C%D1%8F%2012.pdf",
+    "code": "https://github.com/kliakhnovich/smmr",
+    "status": "published venue identified"
+  },
+  {
+    "id": 12,
+    "authors": "Chen Xu; Zhirui Deng; Clara Rus; Xiaopeng Ye; Yuanna Liu; Jun Xu; Zhicheng Dou; Ji-Rong Wen; Maarten de Rijke",
+    "title": "FairDiverse: A Comprehensive Toolkit for Fairness- and Diversity-aware Information Retrieval",
+    "venue": "ACM SIGIR 2025, resource paper, tr. 3540–3550",
+    "year": 2025,
+    "doi": "10.1145/3726302.3730280",
+    "url": "https://pure.uva.nl/ws/files/304772377/3726302.3730280.pdf",
+    "code": "https://github.com/XuChen0427/FairDiverse",
+    "status": "published venue identified"
+  },
+  {
+    "id": 13,
+    "authors": "Theresia Veronika Rampisela; Tuukka Ruotsalo; Maria Maistro; Christina Lioma",
+    "title": "Joint Evaluation of Fairness and Relevance in Recommender Systems with Pareto Frontier",
+    "venue": "ACM The Web Conference 2025, tr. 1548–1566",
+    "year": 2025,
+    "doi": "10.1145/3696410.3714589",
+    "url": "https://arxiv.org/html/2502.11921v1",
+    "code": "https://github.com/theresiavr/DPFR-recsys-evaluation",
+    "status": "published venue identified"
+  },
+  {
+    "id": 14,
+    "authors": "Chen Xu; Yuxin Li; Wenjie Wang; Liang Pang; Jun Xu; Tat-Seng Chua",
+    "title": "Bridging Jensen Gap for Max-Min Group Fairness Optimization in Recommendation",
+    "venue": "ICLR 2025, conference paper",
+    "year": 2025,
+    "doi": "",
+    "url": "https://proceedings.iclr.cc/paper_files/paper/2025/hash/184a03a3ad07e8897c62461c02634b02-Abstract-Conference.html",
+    "code": "https://github.com/XuChen0427/FairDual",
+    "status": "published venue identified"
+  },
+  {
+    "id": 15,
+    "authors": "Lequn Wang; Thorsten Joachims",
+    "title": "User Fairness, Item Fairness, and Diversity for Rankings in Two-Sided Markets",
+    "venue": "ICTIR",
+    "year": 2021,
+    "doi": "10.1145/3471158.3472260",
+    "url": "https://www.cs.cornell.edu/people/tj/publications/wang_joachims_21a.pdf",
+    "status": "published"
+  },
+  {
+    "id": 16,
+    "authors": "Anay Mehrotra; Nisheeth K. Vishnoi",
+    "title": "Fair Ranking with Noisy Protected Attributes",
+    "venue": "NeurIPS 35",
+    "year": 2022,
+    "doi": "",
+    "url": "https://proceedings.neurips.cc/paper_files/paper/2022/hash/cdd0640218a27e9e2c0e52e324e25db0-Abstract-Conference.html",
+    "status": "published"
+  },
+  {
+    "id": 17,
+    "authors": "Lequn Wang; Thorsten Joachims",
+    "title": "Uncertainty Quantification for Fairness in Two-Stage Recommender Systems",
+    "venue": "WSDM, 940–948",
+    "year": 2023,
+    "doi": "10.1145/3539597.3570469",
+    "url": "https://www.cs.cornell.edu/~tj/publications/wang_joachims_23a.pdf",
+    "status": "published"
+  },
+  {
+    "id": 18,
+    "authors": "Thibaut Thonet; Jean-Michel Renders",
+    "title": "Multi-grouping Robust Fair Ranking",
+    "venue": "SIGIR, 2077–2080",
+    "year": 2020,
+    "doi": "10.1145/3397271.3401292",
+    "url": "https://europe.naverlabs.com/research/publications/multi-grouping-robust-fair-ranking/",
+    "status": "published"
+  },
+  {
+    "id": 19,
+    "authors": "Dominykas Seputis; Alexander Timans; Rajeev Verma",
+    "title": "Equity by Design? On the Trade-Offs in Fairness-Driven Recommendation in Heterogeneous Two-Sided Markets",
+    "venue": "ICTIR; author version v3, 02 July 2026",
+    "year": 2026,
+    "doi": "10.1145/3805713.3820413",
+    "url": "https://arxiv.org/html/2602.10739v3",
+    "status": "published venue identified; use v3 title"
+  },
+  {
+    "id": 20,
+    "authors": "Ananya Gupta; Eric Johnson; Justin Payan; Aditya Kumar Roy; Ari Kobren; Swetasudha Panda; Jean-Baptiste Tristan; Michael Wick",
+    "title": "Online Post-Processing in Rankings for Fair Utility Maximization",
+    "venue": "WSDM, 454–462",
+    "year": 2021,
+    "doi": "10.1145/3437963.3441724",
+    "url": "https://swetapanda.github.io/menu/fairranking.pdf",
+    "status": "published"
+  },
+  {
+    "id": 21,
+    "authors": "Navkar Jain; Enock Ayiku; Kenneth Fletcher",
+    "title": "FAIRGate: Agentic Runtime Policy Selection and Verified Repair for Fairer Recommendation Delivery",
+    "venue": "arXiv:2610.30359, 21 October 2026",
+    "year": 2026,
+    "doi": "",
+    "url": "https://arxiv.org/abs/2610.30359",
+    "status": "preprint; authors report acceptance at IRAI 2026, publisher not independently verified"
+  },
+  {
+    "id": 22,
+    "authors": "Guoli Wu; Zhiyong Feng; Shizhan Chen; Hongyue Wu; Xiao Xue; Jianmao Xiao; Guodong Fan; Hongqi Chen; Jingyu Li",
+    "title": "FairSort: Learning to Fair Rank for Personalized Recommendations in Two-Sided Platforms",
+    "venue": "IEEE TKDE 37(2), 641–654",
+    "year": 2025,
+    "doi": "10.1109/TKDE.2024.3509912",
+    "url": "https://arxiv.org/html/2412.00424v2",
+    "status": "published"
+  },
+  {
+    "id": 23,
+    "authors": "Elita Lobo; Justin Payan; Cyrus Cousins; Yair Zick",
+    "title": "Fair and Welfare-Efficient Constrained Multi-matchings under Uncertainty",
+    "venue": "NeurIPS 37",
+    "year": 2024,
+    "doi": "",
+    "url": "https://proceedings.neurips.cc/paper_files/paper/2024/file/883105b282fe15275991b411e6b200c5-Paper-Conference.pdf",
+    "status": "published"
+  },
+  {
+    "id": 24,
+    "authors": "Ramon Lopes; Rodrigo Alves; Antoine Ledent; Rodrygo L. T. Santos; Marius Kloft",
+    "title": "Recommendations with minimum exposure guarantees: A post-processing framework",
+    "venue": "Expert Systems with Applications 236, 121164",
+    "year": 2024,
+    "doi": "10.1016/j.eswa.2023.121164",
+    "url": "https://www.sciencedirect.com/science/article/pii/S0957417423016664",
+    "status": "published; publisher/institutional abstract inspected"
+  },
+  {
+    "id": 25,
+    "authors": "Ashudeep Singh; Thorsten Joachims",
+    "title": "Fairness of Exposure in Rankings",
+    "venue": "KDD, 2219–2228",
+    "year": 2018,
+    "doi": "10.1145/3219819.3220088",
+    "url": "https://www.cs.cornell.edu/people/tj/publications/singh_joachims_18a.pdf",
+    "status": "published"
+  },
+  {
+    "id": 26,
+    "authors": "Steffen Rendle; Christoph Freudenthaler; Zeno Gantner; Lars Schmidt-Thieme",
+    "title": "BPR: Bayesian Personalized Ranking from Implicit Feedback",
+    "venue": "UAI, 460–469",
+    "year": 2009,
+    "doi": "",
+    "url": "https://proceedings.mlr.press/r7/rendle09a.html",
+    "status": "published"
+  },
+  {
+    "id": 27,
+    "authors": "Xiangnan He; Kuan Deng; Xiang Wang; Yan Li; Yongdong Zhang; Meng Wang",
+    "title": "LightGCN: Simplifying and Powering Graph Convolution Network for Recommendation",
+    "venue": "SIGIR, 639–648",
+    "year": 2020,
+    "doi": "10.1145/3397271.3401063",
+    "url": "https://hexiangnan.github.io/papers/sigir20-LightGCN.pdf",
+    "status": "published"
+  },
+  {
+    "id": 28,
+    "authors": "Wayne Xin Zhao et al.",
+    "title": "RecBole: Towards a Unified, Comprehensive and Efficient Framework for Recommendation Algorithms",
+    "venue": "CIKM",
+    "year": 2021,
+    "doi": "10.1145/3459637.3482016",
+    "url": "https://github.com/RUCAIBox/RecBole",
+    "status": "published"
+  },
+  {
+    "id": 29,
+    "authors": "Jaime Carbonell; Jade Goldstein",
+    "title": "The Use of MMR, Diversity-Based Reranking for Reordering Documents and Producing Summaries",
+    "venue": "SIGIR, 335–336",
+    "year": 1998,
+    "doi": "10.1145/290941.291025",
+    "url": "https://doi.org/10.1145/290941.291025",
+    "status": "published"
+  },
+  {
+    "id": 30,
+    "authors": "R. Tyrrell Rockafellar; Stanislav Uryasev",
+    "title": "Optimization of Conditional Value-at-Risk",
+    "venue": "Journal of Risk 2(3), 21–41",
+    "year": 2000,
+    "doi": "10.21314/JOR.2000.038",
+    "url": "https://sites.math.washington.edu/~rtr/papers/rtr179-CVaR1.pdf",
+    "status": "published"
+  },
+  {
+    "id": 31,
+    "authors": "R. Tyrrell Rockafellar; Stanislav Uryasev",
+    "title": "Conditional Value-at-Risk for General Loss Distributions",
+    "venue": "Journal of Banking & Finance 26(7), 1443–1471",
+    "year": 2002,
+    "doi": "10.1016/S0378-4266(02)00271-6",
+    "url": "https://sites.math.washington.edu/~rtr/papers/rtr187-CVaR2.pdf",
+    "status": "published"
+  },
+  {
+    "id": 32,
+    "authors": "F. Maxwell Harper; Joseph A. Konstan",
+    "title": "The MovieLens Datasets: History and Context",
+    "venue": "ACM TiiS 5(4), Article 19",
+    "year": 2015,
+    "doi": "10.1145/2827872",
+    "url": "https://grouplens.org/datasets/movielens/1m/",
+    "status": "dataset source and paper"
+  },
+  {
+    "id": 33,
+    "authors": "Jianmo Ni; Jiacheng Li; Julian McAuley",
+    "title": "Justifying Recommendations using Distantly-Labeled Reviews and Fine-Grained Aspects",
+    "venue": "EMNLP-IJCNLP",
+    "year": 2019,
+    "doi": "10.18653/v1/D19-1018",
+    "url": "https://cseweb.ucsd.edu/~jmcauley/datasets/amazon_v2/",
+    "status": "dataset source and paper"
+  },
+  {
+    "id": 34,
+    "authors": "Arundeep Chinta; Lucas Vinh Tran; Jay Katukuri",
+    "title": "FARE: Deep Reinforcement Learning For Fair Exposure Constrained Uncertainty Aware Financial Content Personalization",
+    "venue": "arXiv:2609.31890, extended version",
+    "year": 2026,
+    "doi": "",
+    "url": "https://arxiv.org/abs/2609.31890",
+    "status": "preprint; authors report earlier ICLR 2026 workshop acceptance, not main conference"
+  },
+  {
+    "id": 35,
+    "authors": "Ahmet Burak Mahmutogullari; Ozlem Cavus; M. Selim Akturk",
+    "title": "Bounds on risk-averse mixed-integer multi-stage stochastic programming problems with mean-CVaR",
+    "venue": "European Journal of Operational Research 266(2), 595–608",
+    "year": 2018,
+    "doi": "10.1016/j.ejor.2017.10.038",
+    "url": "https://yoksis.bilkent.edu.tr/pdf/files/13090.pdf",
+    "status": "published"
+  },
+  {
+    "id": 36,
+    "authors": "L. Elisa Celis; Damian Straszak; Nisheeth K. Vishnoi",
+    "title": "Ranking with Fairness Constraints",
+    "venue": "ICALP, Article 28",
+    "year": 2018,
+    "doi": "10.4230/LIPIcs.ICALP.2018.28",
+    "url": "https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2018.28",
+    "status": "published"
+  },
+  {
+    "id": 37,
+    "authors": "Wassily Hoeffding",
+    "title": "Probability Inequalities for Sums of Bounded Random Variables",
+    "venue": "Journal of the American Statistical Association 58(301), 13–30",
+    "year": 1963,
+    "doi": "10.1080/01621459.1963.10500830",
+    "url": "https://www.tandfonline.com/doi/abs/10.1080/01621459.1963.10500830",
+    "status": "published"
+  }
+]

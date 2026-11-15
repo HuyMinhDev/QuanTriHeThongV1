@@ -1,0 +1,5 @@
+raw_ids= ['A', 'D', 'X', 'A']
+invalid_count= 2 invalid_fraction= 0.5
+pedagogical_topscore_fill= ['A', 'D', 'B']
+ranking= ['A', 'B', 'C'] score=2.78 ILD=0.000000 NDCG(A,D)=0.613147 NDCG(A,B)=1.000000
+ranking= ['A', 'D', 'B'] score=2.76 ILD=0.666667 NDCG(A,D)=1.000000 NDCG(A,B)=0.919721

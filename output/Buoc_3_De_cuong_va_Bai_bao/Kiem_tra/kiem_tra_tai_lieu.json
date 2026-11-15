@@ -1,0 +1,308 @@
+{
+  "documents": [
+    {
+      "file": "01_De_cuong_Luan_van_Thac_si.docx",
+      "bytes": 46068,
+      "sha256": "5dbc1584c34e641dcee7bab35f7debd90454844b36f553a837c01eac8bf447ff",
+      "words_including_references": 2436,
+      "tables": 1
+    },
+    {
+      "file": "02_Du_thao_Bai_bao_WCR.docx",
+      "bytes": 208669,
+      "sha256": "e9ccfb93a798750720c0ddba745f9fd4d0686326769f26464231f6e9d8abc5fc",
+      "words_including_references": 10023,
+      "tables": 6
+    }
+  ],
+  "checks": [
+    {
+      "check": "37 distinct real-source records",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "reference titles, authors and source URLs populated",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "paper citations resolve and all bibliography records used",
+      "passed": true,
+      "detail": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37
+      ]
+    },
+    {
+      "check": "proposal citations resolve to local bibliography",
+      "passed": true,
+      "detail": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21
+      ]
+    },
+    {
+      "check": "no unresolved work markers/internal web IDs in narrative",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "fourteen ingested Word inputs",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "input hash 01_PFA.docx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "input hash 02_Behind_ReRank.docx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "input hash 03_ADF.docx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "input hash 04_Fairness_Metrics.docx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "input hash 05_VRisker.docx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "input hash 06_CatDive.docx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "input hash 07_IPS_LAE.docx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "input hash 08_LLM_Reranking.docx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "input hash 09_SCRUF_D.docx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "input hash 10_ElasticRank.docx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "input hash 11_SMMR.docx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "input hash 12_FairDiverse.docx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "input hash 13_DPFR.docx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "input hash 14_FairDual.docx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "01_De_cuong_Luan_van_Thac_si.docx ZIP integrity",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "01_De_cuong_Luan_van_Thac_si.docx external paper/source links",
+      "passed": true,
+      "detail": 21
+    },
+    {
+      "check": "01_De_cuong_Luan_van_Thac_si.docx substantial narrative",
+      "passed": true,
+      "detail": 2436
+    },
+    {
+      "check": "template margins match within 1 twip",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "template TNR 13",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "template 1.5 line spacing",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "top-centred page number only",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "16 linked contents page fields",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "cover body 14/title 16 present",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "01_De_cuong_Luan_van_Thac_si.docx macOS textutil readable",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "02_Du_thao_Bai_bao_WCR.docx ZIP integrity",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "02_Du_thao_Bai_bao_WCR.docx external paper/source links",
+      "passed": true,
+      "detail": 78
+    },
+    {
+      "check": "02_Du_thao_Bai_bao_WCR.docx substantial narrative",
+      "passed": true,
+      "detail": 10023
+    },
+    {
+      "check": "all fourteen numbered equations present as editable Word math",
+      "passed": true,
+      "detail": {
+        "numbers": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14
+        ],
+        "math_objects": 20
+      }
+    },
+    {
+      "check": "executed-results figure embedded",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "explicit real-data evidence boundary",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "02_Du_thao_Bai_bao_WCR.docx macOS textutil readable",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "simulation forty instances no assertion failures",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "recorded simulation source hash core.py",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "recorded simulation source hash milp_backend.py",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "recorded simulation source hash run_study.py",
+      "passed": true,
+      "detail": null
+    }
+  ],
+  "passed": 41,
+  "limits": [
+    "No Microsoft Word visual pagination/render verification available; final page count must be checked in Word.",
+    "No real-data benchmark has been run; simulation evidence is finite and synthetic."
+  ]
+}

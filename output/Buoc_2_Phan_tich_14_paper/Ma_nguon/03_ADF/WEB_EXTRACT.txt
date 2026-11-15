@@ -1,0 +1,558 @@
+WEB EXTRACT - inspected 2026-11-15 - NOT a full raw source snapshot
+ (https://raw.githubusercontent.com/celinatreuillier/ADF_framework/main/re_ranking/ADF.py)
+ [wordlim: 200] Crawled: 3 weeks ago; Content type: text/plain; Source: open({"ref_id":"https://raw.githubusercontent.com/celinatreuillier/ADF_framework/main/re_ranking/ADF.py","lineno":null}); Total lines: 297
+L0: import warnings
+L1: warnings.filterwarnings("ignore")
+L2: 
+L3: import pandas as pd
+L4: import json
+L5: from tqdm import tqdm
+L6: import random
+L7: import numpy as np
+L8: import time
+L9: import sys
+L10: import os
+L11: import getopt
+L12: import matplotlib as mpl
+L13: import matplotlib.pyplot as plt
+L14: from scipy.stats import entropy
+L15: ### Initial values
+L16: dataset, algorithm, alpha_value = None, None, None
+L17: 
+L18: try:
+L19:     opts, args = getopt.getopt(
+L20:         sys.argv[1:], "d:a:v:", # options that require argument are followed by a colon
+L21:         ["dataset=", "algorithm=", "alpha_value="])
+L22: 
+L23: except getopt.GetoptError:
+L24:     print("Invalid command-line arguments.")
+L25:     print("Usage: ADF_script.py [-w] [-d <dataset>] [-a <algorithm>] [-v <alpha-value>]")
+L26:     sys.exit(2)
+L27: 
+L28: for opt, arg in opts:
+L29:     if opt in ("-d", "--dataset"):
+L30:         dataset = str(arg)
+L31:         # intensity =  ast.literal_eval(arg)
+L32: 
+L33:     elif opt in ("-a", "--algorithm"):
+L34:         algorithm = str(arg)
+L35: 
+L36:     elif opt in ("-v", "--alpha-value"):
+L37:         alpha_value = int(arg)/10
+L38: 
+L39: 
+L40: print(f'\ADF parameters:')
+L41: print(f"\tDataset: {dataset}")
+L42: print(f"\tAlgorithm: {algorithm}")
+L43: print(f"\tAlpha value: {alpha_value}")
+L44: 
+L45: print(os.getcwd())
+L46: 
+L47: def normalize_scores(scores):
+L48:     min_score = min(scores)
+L49:     max_score = max(scores)
+L50:     normalized_scores = []
+L51:     for score in scores:
+L52:         normalized_score = (score - min_score) / (max_score - min_score)
+L53:         normalized_scores.append(normalized_score)
+L54:     return normalized_scores
+L55: 
+L56: if algorithm=='centroidVector': #CSV file
+L57:     datapath='reco_scores_baseline/{}/recommendations_{}_{}.csv'.format(dataset,algorithm,dataset)
+L58:     results = pd.read_csv(datapath, index_col=0)
+L59: else: #JSON file
+L60:     datapath = 'reco_scores_baseline/{}/recommendations_{}_{}.json'.format(dataset,algorithm,dataset)
+L61:     with open(datapath, 'r') as f:
+L62:         results_json = json.loads(f.read())
+L63: 
+L64:     # Initialize lists to store extracted data
+L65:     user_ids = []
+L66:     news_ids = []
+L67:     scores = []
+L68:     # Iterate through the JSON data to extract user IDs, news IDs, and scores
+L69:     for user_id, news_data in tqdm(results_json.items()):
+L70:         for news_id, score in news_data.items():
+L71:             user_ids.append(user_id)
+L72:             news_ids.append(news_id)
+L73:             scores.append(score)
+L74:     # Construct a DataFrame from the extracted data
+L75:     results = pd.DataFrame({
+L76:         'user_id': user_ids,
+L77:         'news_id': news_ids,
+L78:         'score': scores
+L79:     })
+L80:     # Normalize recommendation scores
+L81:     results['score'] = normalize_scores(results['score'].tolist())
+L82: 
+L83: if dataset == 'MIND':
+L84:     news = pd.read_pickle('data/{}/news_info.pkl'.format(dataset))
+L85:     news = news[['NewsID_small', 'Category', 'Title', 'Embedding']].rename(
+L86:         columns={'NewsID_small': 'news_id', 'Category': 'category_name'})
+L87:     news = news[~news['news_id'].isna()]
+L88:     news = news[~news['Embedding'].isna()]
+L89:     #Define list of categories
+L90:     categories_list = ['lifestyle', 'health', 'news', 'sports', 'weather','entertainment','foodanddrink','autos','travel','video','tv','finance','movies','music','kids']
+L91:     #Only keep news from these categories
+L92:     news = news[news['category_name'].isin(categories_list)]
+L93:     #Create a dictionary that maps each unique category_name to a unique integer
+L94:     category_mapping = {category: i for i, category in enumerate(news['category_name'].unique())}
+L95:     # Apply the mapping to the 'category_name' column
+L96:     news['category'] = news['category_name'].map(category_mapping)
+L97: elif dataset =='ADRESSA':
+L98:     news = pd.read_csv('data/{}/news_adressa_emb.csv'.format(dataset), index_col=0)
+L99:     news = news[['nid','category','title','embeddings']].rename(columns={'nid':'news_id','category':'category_name','title':'Title','embeddings':'Embedding'})
+L100:     news = news[~news['news_id'].isna()]
+L101:     news = news[~news['Embedding'].isna()]
+L102:     #Rename the "100sport" category in "sport" to have one unique category corresponding to sport
+L103:     news['category_name'] = news['category_name'].replace('100sport', 'sport')
+L104:     #Define list of categories
+L105:     categories_list = ['nyheter', 'sport', 'forbruker', 'kultur', 'meninger','bolig','tema','tjenester','bil','migration catalog']
+L106:     #Only keep news from these categories
+L107:     news = news[news['category_name'].isin(categories_list)]
+L108:     # Create a dictionary that maps each unique category_name to a unique integer
+L109:     category_mapping = {category: i for i, category in enumerate(news['category_name'].unique())}
+L110:     # Apply the mapping to the 'category_name' column
+L111:     news['category'] = news['category_name'].map(category_mapping)
+L112: # Import behaviors data (train set)
+L113: behaviors = pd.read_csv('data/{}/behaviors.csv'.format(dataset), index_col=0)
+L114: 
+L115: behaviors = behaviors.rename(columns={'UserID':'user_id', 'NewsID':'news_id','Score':'score'})
+L116: 
+L117: #Merge behaviors and news data to have the aspect(s) of news in the interactions data (the aspect on which ADF brings diversity)
+L118: train = behaviors.merge(news[['news_id','category']], on='news_id')
+L119: #Example if aspect = news category, must be adapted to the research context
+L120: categories = train['category'].unique().tolist()
+L121: categories.sort()
+L122: # Get the list of users from the results dataframe
+L123: # list_users = train['user_id'].unique().tolist()
+L124: 
+L125: def get_df_by_user(df, onlyPosScores=False) :
+L126:     dict = df.to_dict()
+L127:     res = {}
+L128:     for i in tqdm(range(len(dict['user_id']))) :
+L129:         userid = dict['user_id'][i]
+L130:         if not userid in res :
+L131:             res[userid] = {'user_id' : [], 'news_id' : [], 'score' : [], 'category' : []}
+L132:             #res[userid] = pd.DataFrame(columns=['news_id','score','category'])
+L133:         #res[userid].loc[len(res)] = {'news_id' : dict['news_id'][i], 'score' : dict['score'][i], 'category' : dict['category'][i]}
+L134:         if (onlyPosScores and dict['score'][i]) or not onlyPosScores :
+L135:             res[userid]['user_id'].append(userid)
+L136:             res[userid]['news_id'].append(dict['news_id'][i])
+L137:             res[userid]['score'].append(dict['score'][i])
+L138:             res[userid]['category'].append(dict['category'][i])
+L139:     for u in tqdm(res) :
+L140:         res[u] = pd.DataFrame(res[u])
+L141:     return res
+L142: # behaviors = dataframe containing users' behaviors (interactions) in the train set, with the details about news' aspect
+L143: # list_aspects = list of unique aspects
+L144: # list_users = list of users' ids
+L145: # should consider the probability of each news for its category. This depends on the way categories are defined (by default = False).
+L146: def get_selection_distribution(list_aspects, list_users, train_per_user):
+L147:     categories_distribution = pd.DataFrame(columns=list_aspects, index=list_users)
+L148:     for u in tqdm(list_users):
+L149:         user_df = train_per_user[u]
+L150:         for c in list_aspects:
+L151:             nbElements = user_df['category'].value_counts()[c] if c in user_df['category'].value_counts() else 0
+L152:             categories_distribution.loc[u,c] = nbElements/len(user_df['category'])
+L153:     return categories_distribution
+L154: 
+L155: list_users = pd.read_csv('list_users_{}.csv'.format(dataset))['0'].tolist()
+L156: print('Nb of users:',len(list_users))
+L157: 
+L158: 
+L159: 
+L160: print('trainDict & train_per_user initialization')
+L161: start_time = time.time()
+L162: train_per_user = get_df_by_user(train, True)
+L163: print("--- took a total of %s seconds ---" % (time.time() - start_time))
+L164: try :
+L165:     print("Trying to read data/categories_distribution.csv...")
+L166:     categories_distribution = pd.read_csv("data/{}/categories_distribution.csv".format(dataset), header=[0], index_col=[0])
+L167:     print("Successful. If you changed anything related to the dataset, "
+L168:     + "you should delete data/{}/categories_distribution.csv to generate a new one".format(dataset))
+L169: except FileNotFoundError:
+L170:     print("Couldn't read data/{}/categories_distribution.csv, creating it".format(dataset))
+L171:     categories_distribution = get_selection_distribution(categories, list_users, train_per_user)
+L172:     categories_distribution.to_csv("data/{}/categories_distribution.csv".format(dataset))
+L173: def normalized_entropy(distribution):
+L174:     return entropy(distribution, base=2) / np.log2(len(distribution))
+L175: 
+L176: def compute_entropy_users(list_users, categories_distribution):
+L177:     u_values = pd.DataFrame(index=list_users)
+L178:     for u in tqdm(list_users):
+L179:         distrib_user = categories_distribution.loc[u].values.tolist()
+L180:         entropy_value = normalized_entropy(distrib_user)
+L181:         u_values.loc[u, 'entropy'] = entropy_value
+L182:     return u_values
+L183: 
+L184: user_entropy_values = compute_entropy_users(list_users, categories_distribution)
+L185: # Function allowing to estimate the target diversity based on a and b parameters
+L186: def div(x, a, b):
+L187:     return (1 - b) * (x ** (1 - a)) + b
+L188: 
+L189: 
+L190: # Function allowing to get the homogenized distribution (target distribution)
+L191: def homogeneization(distrib, param=0.5):
+L192:     n = len(distrib)
+L193:     new_distrib = [((1 - param) * p) + (param / n) for p in distrib]
+L194:     return new_distrib
+L195: # Function to have the results dataframe with corresponding news categories
+L196: def get_results_categories(initial_results):
+L197:     results_categories = initial_results.copy()
+L198:     results_categories = results_categories.merge(news[['news_id', 'category']], on='news_id')
+L199:     return results_categories
+L200: 
+L201: 
+L202: results_categories = get_results_categories(results)
+L203: 
+L204: results_df = get_df_by_user(results_categories)
+L205: # PARAMETERS:
+L206: # df = dataframe with results
+L207: # entropy_df = dataframe with entropy values for each user
+L208: # list_users = list of users ids
+L209: # proportions_df = distribution of users interactions over news categories
+L210: # a,b = values of parameters a and b of ADF
+L211: # news = dataframe containing news information (especially the categories)
+L212: # behaviors = dataframe contaning users' behaviors
+L213: # k = number of recommendations
+L214: def ADF(df, entropy_df, list_users, proportions_df, a, b, news, train_per_user, k=20):
+L215:     results_entropy = entropy_df.copy()
+L216:     final_results = pd.DataFrame()
+L217:     for u in tqdm(list_users):
+L218:         ##GET NECESSARY DATA
+L219:         # get user's interactions
+L220:         accessed_news = train_per_user[u]['news_id'].tolist()
+L221:         # get the recommendations results for the user
+L222:         data = df[u]
+L223:         # get list of categories recommended to a user
+L224:         list_recommended_categories = data['category'].unique().tolist()
+L225:         # get the distribution of user's interest over news categories
+L226:         proportions_user = proportions_df.loc[u].tolist()
+L227:         # get user's entropy value
+L228:         entropy_user = results_entropy.loc[u].values[0]
+L229:         ##DEFINE THE TARGET ENTROPY (diversification)
+L230:         target_entropy = div(entropy_user, a, b)
+L231:         # Save the target entropy in a specific dataframe
+L232:         results_entropy.loc[u, 'target_entropy'] = target_entropy
+L233:         # Create an empty dict to save the results
+L234:         dict_lambda_user = {}
+L235:         # Here the distribution of users' preferences is homogenized using varying value of the lambda parameter
+L236:         # It allows to find the distribution allowing to have the entropy value as close as possible to the target entropy
+L237:         for l in np.arange(0, 1.05, 0.05):
+L238:             # get the homogenized distribution with a specific lambda value
+L239:             new_distrib = homogeneization(proportions_user, param=round(l, 2))
+L240:             # compute associated entropy
+L241:             new_entropy = normalized_entropy(new_distrib)
+L242:             # get the error between the computed entropy and the target entropy
+L243:             delta = target_entropy - new_entropy
+L244:             # save this value in the dict
+L245:             dict_key = {round(l, 2): abs(delta)}
+L246:             dict_lambda_user.update(dict_key)
+L247:         # identify the optimal lambda value by searching for the one allowing to have the smallest error
+L248:         optimal_lambda = min(dict_lambda_user, key=dict_lambda_user.get)
+L249:         # save this optimal lambsa value in the associated dataframe
+L250:         results_entropy.loc[u, 'optimal_lambda'] = optimal_lambda
+L251:         ##GET THE RECOMMENDATIONS
+L252:         # Once the optimal lambda value is knows, the target distribution can be computed from user's initial distribution
+L253:         new_proportion = homogeneization(proportions_user, param=optimal_lambda)
+L254:         # Recommendations are then retrieved for each news category
+L255:         for c in range(len(new_proportion)):
+L256:             prop = new_proportion[c]
+L257:             # Compute the number of news to recommend in category c (according to the target distribution)
+L258:             nb_recos = int(round(prop * k, 0))
+L259:             # If the category is recommended to user u, select the news having higher recommendation scores
+L260:             if c in list_recommended_categories:
+L261:                 data_sub = data[data['category'] == c].sort_values(by='score', ascending=False)[:nb_recos]
+L262:             # else, choose random news from the category
+L263:             else:
+L264:                 data_sub = pd.DataFrame(columns=['user_id', 'news_id', 'score', 'category'])
+L265:                 # here the news that were already accessed by a user are filtered
+L266:                 news_to_select = news[~news['news_id'].isin(accessed_news)]
+L267:                 cat_news = news_to_select[news_to_select['category'] == c]['news_id'].tolist()
+L268:                 if len(cat_news) >= nb_recos:
+L269:                     selected_news = random.sample(cat_news, k=nb_recos)
+L270:                 else:
+L271:                     selected_news = cat_news
+L272:                 for n in selected_news:
+L273:                     new_row = {'user_id': u, 'news_id': n, 'score': 0, 'category': c}
+L274:                     # data_sub = data_sub.append(new_row, ignore_index=True)
+L275:                     data_sub.loc[len(data_sub)] = new_row
+L276:             data_sub['category'] = c
+L277:             # the recommendations are stored in the dataframe
+L278:             final_results = pd.concat([final_results, data_sub])
+L279:             final_results = final_results.reset_index(drop=True)
+L280:     # the results are returned: final_results contains the list of k recommendations per user, results_entropy contains the information about the target entropy and associated optimal lambda value for each user
+L281:     return final_results, results_entropy
+L282: 
+L283: if not os.path.exists('reco_scores_ADF/{}/{}/'.format(dataset, algorithm)) :
+L284:     os.mkdir('reco_scores_ADF/{}/{}/'.format(dataset, algorithm))
+L285: 
+L286: print('Applying ADF...')
+L287: results, entropy_results = ADF(results_df, user_entropy_values, list_users, categories_distribution, alpha_value, 0, news, train_per_user, k=20)
+L288: print('ADF done!')
+L289: # path = results/dkn_MIND_RESULTS_a_01_
+L290: # algorithm_name = datapath.split("/")[-1].split("_")[1]+"_"+datapath.split("/")[-1].split("_")[2].split(".")[0]
+L291: # data_path = 'data_results/'+algorithm_name+'_RESULTS_a_'+str(a)+'_ADF.csv'
+L292: print('Saving results...')
+L293: results.to_csv('reco_scores_ADF/{}/{}/{}_{}_RESULTS_a_{}_ADF.csv'.format(dataset, algorithm, algorithm, dataset, str(alpha_value).replace('.','')))
+L294: entropy_results.to_csv('reco_scores_ADF/{}/{}/{}_{}_RESULTS_indiv_a_{}_ADF.csv'.format(dataset, algorithm, algorithm, dataset, str(alpha_value).replace('.','')))
+L295: print('Results saved!')
+L296: print('DONE ! ADF applied on {} for the {} algorithm, with alpha={}.'.format(dataset, algorithm, alpha_value))
+--------------------------------------------------------------------------------
+GitHub - celinatreuillier/ADF_framework: ADF framework for News Recommendation · GitHub (https://github.com/celinatreuillier/ADF_framework)
+ [wordlim: 200] Crawled: 3 months ago; Content type: text/html; Source: open({"ref_id":"https://github.com/celinatreuillier/ADF_framework","lineno":null}); Total lines: 254
+L0: 【0†Skip to content】
+L1: ## Navigation Menu
+L2: 
+L3: 【1†Sign in】
+L4: 
+L5: Appearance settings
+L6: 
+L7:   * Platform
+L8: 
+L9:     * AI CODE CREATION
+L10:       * 【2†GitHub CopilotWrite better code with AI】
+L11:       * 【3†GitHub Copilot appDirect agents from issue to merge】
+L12:       * 【4†MCP RegistryIntegrate external tools】
+L13: 
+L14:     * DEVELOPER WORKFLOWS
+L15:       * 【5†ActionsAutomate any workflow】
+L16:       * 【6†CodespacesInstant dev environments】
+L17:       * 【7†IssuesPlan and track work】
+L18:       * 【8†Code ReviewManage code changes】
+L19:       * 【9†Code QualityEnforce quality at merge】
+L20:     * APPLICATION SECURITY
+L21:       * 【10†GitHub Advanced SecurityFind and fix vulnerabilities】
+L22:       * 【11†Code securitySecure your code as you build】
+L23:       * 【12†Secret protectionStop leaks before they start】
+L24: 
+L25:     * EXPLORE
+L26:       * 【13†Why GitHub】
+L27:       * 【14†Documentation†docs.github.com】
+L28:       * 【15†Blog†github.blog】
+L29:       * 【16†Changelog†github.blog】
+L30:       * 【17†Marketplace】
+L31: 
+L32: 【18†View all features】
+L33: 
+L34:   * Solutions
+L35:     * BY COMPANY SIZE
+L36:       * 【19†Enterprises】
+L37:       * 【20†Small and medium teams】
+L38:       * 【21†Startups】
+L39:       * 【22†Nonprofits】
+L40: 
+L41:     * BY USE CASE
+L42:       * 【23†App Modernization】
+L43:       * 【24†DevSecOps】
+L44:       * 【25†DevOps】
+L45:       * 【26†CI/CD】
+L46:       * 【27†View all use cases】
+L47: 
+L48:     * BY INDUSTRY
+L49:       * 【28†Healthcare】
+L50:       * 【29†Financial services】
+L51:       * 【30†Manufacturing】
+L52:       * 【31†Government】
+L53:       * 【32†View all industries】
+L54: 
+L55: 【33†View all solutions】
+L56: 
+L57:   * Resources
+L58:     * EXPLORE BY TOPIC
+L59:       * 【34†AI】
+L60:       * 【35†Software Development】
+L61:       * 【36†DevOps】
+L62:       * 【37†Security】
+L63:       * 【38†View all topics】
+L64: 
+L65:     * EXPLORE BY TYPE
+L66:       * 【39†Customer stories】
+L67:       * 【40†Events & webinars】
+L68:       * 【41†Ebooks & reports】
+L69:       * 【42†Business insights】
+L70:       * 【43†GitHub Skills†skills.github.com】
+L71:     * SUPPORT & SERVICES
+L72:       * 【14†Documentation†docs.github.com】
+L73:       * 【44†Customer support†support.github.com】
+L74:       * 【45†Community forum】
+L75:       * 【46†Trust center】
+L76:       * 【47†Partners】
+L77: 
+L78: 【48†View all resources】
+L79: 
+L80:   * Open Source
+L81: 
+L82:     * COMMUNITY
+L83:       * 【49†GitHub SponsorsFund open source developers】
+L84:     * PROGRAMS
+L85:       * 【50†Security Lab†securitylab.github.com】
+L86:       * 【51†Maintainer Community†maintainers.github.com】
+L87:       * 【52†Accelerator】
+L88:       * 【53†GitHub Stars†stars.github.com】
+L89:       * 【54†Archive Program†archiveprogram.github.com】
+L90: 
+L91:     * REPOSITORIES
+L92:       * 【55†Topics】
+L93:       * 【56†Trending】
+L94:       * 【57†Collections】
+L95: 
+L96:   * Enterprise
+L97: 
+L98:     * ENTERPRISE SOLUTIONS
+L99:       * 【19†Enterprise platformAI-powered developer platform】
+L100:     * AVAILABLE ADD-ONS
+L101:       * 【10†GitHub Advanced SecurityEnterprise-grade security features】
+L102:       * 【58†Copilot for BusinessEnterprise-grade AI features】
+L103:       * 【59†Premium SupportEnterprise-grade 24/7 support】
+L104: 
+L105:   * 【60†Pricing】
+L106: 
+L107: Search`/`
+L108: 
+L109: 【1†Sign in】
+L110: 
+L111: 【61†Sign up】
+L112: 
+L113: Appearance settings
+L114: You signed in with another tab or window. Reload to refresh your session. You signed out in another tab or window. Reload to refresh your session. You switched accounts on another tab or window. Reload to refresh your session. Dismiss alert
+L115: 
+L116: 【62†celinatreuillier】 / 【63†ADF_framework】 Public
+L117: 
+L118:   * 【64†Notifications】 You must be signed in to change notification settings
+L119:   * 【64†Fork 1】
+L120:   * 【64†Star】
+L121:   * 【63†Code】
+L122:   * 【65†Issues 0】
+L123:   * 【66†Pull requests 0】
+L124:   * 【67†Actions】
+L125:   * 【68†Projects】
+L126:   * 【69†Security and quality 0】
+L127:   * 【70†Insights】
+L128: 
+L129: Additional navigation options
+L130: 
+L131: main
+L132: 
+L133: 【71†Branches】【72†Tags】
+L134: 
+L135: Go to file
+L136: 
+L137: Code
+L138: 
+L139: Open more actions menu
+L140: ## Folders and files
+L141: 
+L142: Name  | Name  | Last commit message  | Last commit date
+L143: --- | --- | --- | ---
+L144: 
+L145: ## Latest commit
+L146: ## History
+L147: 
+L148: 22 Commits
+L149: 【73†data】  | 【73†data】  |    |
+L150: 【74†evaluation】  | 【74†evaluation】  |    |
+L151: 【75†re_ranking】  | 【75†re_ranking】  |    |
+L152: 【76†reco_scores_ADF】  | 【76†reco_scores_ADF】  |    |
+L153: 【77†reco_scores_baseline】  | 【77†reco_scores_baseline】  |    |
+L154: 【78†reco_scores_greedy】  | 【78†reco_scores_greedy】  |    |
+L155: 【79†LICENSE】  | 【79†LICENSE】  |    |
+L156: 【80†README.md】  | 【80†README.md】  |    |
+L157: 【81†workflow.jpg】  | 【81†workflow.jpg】  |    |
+L158: ## Repository files navigation
+L159: 
+L160:   *   * 【82†README】
+L161:   * 【82†License】
+L162: 
+L163: More items
+L164: # ADF_framework
+L165: 
+L166: ADF is a novel news recommendation framework, intended to provide fair, diverse, and accurate recommendations. ADF is thus designed to promote users' awareness, through diversity, while not orienting users' main interests or opinions, through fairness. This repository contains the code to run the proposed framework on the MIND and Adressa datasets.
+L167: 
+L168: The different steps of ADF are the following:
+L169: 
+L170: Here is the organization of the code:
+L171:   * data: contains all necessary data files for both Adressa and MIND datasets.
+L172:   * reco_scores_baseline: contains the list of relevance scores for all recommendation models (centroidVector, LSTUR, NAML, NPA, NRMS). Please note that news centroidVector was applied using the 【83†ClayRS library】, while deep-learning models were applied using the 【84†NewsRecLib library】. To ensure reproducibility, we detail below how these libraries were used to compute the recommendation scores.
+L173:   * re_ranking: contains the python files to apply the re-ranking approaches. Different ways to re-rank recommendations are included:
+L174:     * Greeedy re-ranking (greedy.py): serve as baseline.
+L175:     * ADF (ADF.py): proposed approach, fairness-constrained diversification, with personalization of the target diversity.
+L176:   * reco_scores_ADF: contains the re-ranking list of recommendations when ADF is applied.
+L177:   * reco_scores_greedy: contains the re-ranking list of recommendations when the greedy diversification is applied.
+L178:   * evaluation: contains a notebook necessary to evaluate the outputs of the models (baselines and ADF).
+L179: N.B: Please note that some files are too large to be uploaded on the GitHub repository
+L180: # Apply baseline recommendation models
+L181: ## NewsRecLib
+L182: First, we used the NewsRecLib library to compute recommendation scores for the LSTUR, NAML, NPA, and NRMS models. All models were run with their default settings; we did not modify any parameters in the configuration files. The only change we made was to enable the saving of recommendation lists by setting`save_recs: False` in each model’s YAML configuration file (【85†LSTUR】, 【86†NAML】, 【87†NPA】, 【88†NRMS】).
+L183: The saved recommendation lists are unranked and include all candidate items along with their associated scores. We then followed the library’s instructions and executed the following commands:
+L184: 
+L185:     `#LSTUR
+L186:     python newsreclib/train.py experiment=lsturcon_adressaoneweek_pretrainedemb_celoss_bertsent
+L187:     python newsreclib/train.py experiment=lsturcon_mindsmall_pretrainedemb_celoss_bertsent
+L188: 
+L189:     #NAML
+L190:     python newsreclib/train.py experiment=naml_adressaoneweek_pretrainedemb_celoss_bertsent
+L191:     python newsreclib/train.py experiment=naml_mindsmall_pretrainedemb_celoss_bertsent
+L192: 
+L193:     #NPA
+L194:     python newsreclib/train.py experiment=npa_adressaoneweek_pretrainedemb_celoss_bertsent
+L195:     python newsreclib/train.py experiment=npa_mindsmall_pretrainedemb_celoss_bertsent
+L196: 
+L197:     #NRMS
+L198:     python newsreclib/train.py experiment=nrms_adressaoneweek_pretrainedemb_celoss_bertsent
+L199:     python newsreclib/train.py experiment=nrms_mindsmall_pretrainedemb_celoss_bertsent
+L200:     `
+L201: ## ClayRS
+L202: 
+L203: The ClayRS library is organized into three interdependent modules: content analyzer, recommender system, and evaluation. For our experiments, to ensure consistent data usage across all recommendation models, we reused the data splits and news representations produced by NewsRecLib and applied the CentroidVector model using only the recommender system module of ClayRS.
+L204: To apply CentroidVector, we downloaded and formatted the required data according to the 【89†library's documentation†swapuniba.github.io】.
+L205: We then instantiated and executed the recommender system, specifying the necessary parameters such as the similarity measure, the training set, and the path to the news representations. We set a large recommendation list size (n = 1000) to ensure that enough items were retrieved to support our ADF framework.
+L206: 
+L207:     `centroid_vec = rs.CentroidVector(
+L208:         {'plot': 0},
+L209:         similarity=rs.CosineSimilarity()
+L210:     )
+L211: 
+L212:     cbrs = rs.ContentBasedRS(centroid_vec, train_set, 'news_codified/')
+L213:     rank = cbrs.fit_rank(test_set, n_recs=1000)
+L214:     `
+L215: # License
+L216: 
+L217: This work is licensed under a 【90†Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License†creativecommons.org】.
+L218: 
+L219: ## About
+L220: 
+L221: ADF framework for News Recommendation
+L222: 
+L223: ### Resources
+L224: 
+L225: 【91†Readme】
+L226: 
+L227: 【92†License】
+L228: 
+L229: 【93†Activity】
+L230: 
+L231: ### Stars
+L232: 
+L233: 0 stars
+L234: 
+L235: ### Watchers
+L236: 
+L237: 1 watching
+L238: 
+L239: ### Forks
+L240: 
+L241: 【94†1 fork】
+L242: 
+L243: 【95†Report repository】
+L244: 
+L245: ## Releases
+L246: 
+L247: ## Packages
+L248: 
+L249: ## Contributors
+L250: 
+L251: ## Languages
+L252: 
+L253: You can’t perform that action at this time.
+

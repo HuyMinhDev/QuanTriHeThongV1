@@ -1,0 +1,165 @@
+# 12. FairDiverse: học cách dựng một benchmark công bằng và tái lập được
+
+## 1. Nhận diện nguồn và vai trò thực sự của công trình
+
+**FairDiverse: A Comprehensive Toolkit for Fairness- and Diversity-aware Information Retrieval**, Chen Xu, Zhirui Deng, Clara Rus, Xiaopeng Ye, Yuanna Liu, Jun Xu, Zhicheng Dou, Ji-Rong Wen, Maarten de Rijke; SIGIR2025,3540–3550; DOI [10.1145/3726302.3730280](https://doi.org/10.1145/3726302.3730280). [PDF final](https://pure.uva.nl/ws/files/304772377/3726302.3730280.pdf), [bản HTML tác giả](https://arxiv.org/html/2502.11883v1), [repo](https://github.com/XuChen0427/FairDiverse), [docs](https://xuchen0427.github.io/FairDiverse/).
+
+Bài cung cấp toolkit chuẩn hóa search/recommendation, các giai đoạn pre/in/post-processing và nhiều cách đánh giá fairness/diversity. Bản bài báo mô tả28 phương pháp trên16 base models. Benchmark recommendation minh họa dùng Steam; Bảng3 với BPR/default settings: FairDual NDCG@10/Gini **0,3204/0,7123**, FairNeg **0,2964/0,6671**. Đây là kết quả công bố, chưa được chạy lại trong tài liệu này. [Nguồn mô tả và benchmark](https://arxiv.org/html/2502.11883v1).
+
+Đóng góp chính là cơ sở hạ tầng thực nghiệm và chuẩn hóa cách tích hợp, không phải một reranker duy nhất tên “FairDiverse” có công thức tối ưu riêng. Tài liệu này vì thế giải thích workflow, metric semantics, code contracts và cách kiểm tra thí nghiệm. Phần toy là do người biên soạn tự xây dựng, không thay bất kỳ thuật toán chính thức nào của toolkit.
+
+## 2. Kiến thức nền và cách đọc bài cho người mới
+
+Một framework là bộ quy ước để nhiều thuật toán cùng nhận dữ liệu, cấu hình, gọi huấn luyện và xuất kết quả. Có thể hình dung mỗi thuật toán là một động cơ, còn framework là bàn thử với đồng hồ đo và cách nạp nhiên liệu. Đặt các động cơ lên cùng bàn thử giúp so sánh, nhưng đồng hồ phải đo cùng đại lượng và điều kiện nạp phải được ghi rõ.
+
+Đầu tiên cần hiểu pipeline: raw interactions→preprocessing→train/validation/test→base scoring→reranking→metrics. Thứ hai là cấu hình: file YAML của dataset và model có thể bị ghi đè bởi lựa chọn người chạy. Thứ ba là distinction giữa provider group, category và individual item. Một category có nhiều item không tự là một người bán; gộp item theo category đo một câu hỏi khác exposure của seller.
+
+Đọc Hình1 để hiểu kiến trúc, Bảng2 để thấy phạm vi, rồi §4 để nối API với thao tác. Sau đó đọc code `RecTrainer` và `RecReRanker`; đọc bảng kết quả sau cùng. Nếu bắt đầu bằng việc tìm phương pháp có một ô số đẹp nhất, người học dễ chọn nhầm metric hoặc quên default settings không phải tuning công bằng.
+
+Đối với máy16GB, hãy bắt đầu non-LLM, một dataset nhỏ và một mô hình nền. Không cần cài tất cả solver, framework LLM và thư viện search chỉ vì chúng xuất hiện trong README. Một benchmark nhỏ có đúng IDs và split hữu ích hơn nhiều kết quả mà không thể xác định candidates đến từ đâu.
+
+## 3. Bài toán phần mềm: input, output và ranh giới trách nhiệm
+
+Input gồm dữ liệu interactions, metadata group/category, schema mapping, cấu hình preprocessing/model/evaluation và random seeds. Với post-processing, còn cần ma trận điểm hoặc candidate cache được sinh từ một checkpoint có nguồn gốc rõ. Output gồm checkpoint, ranking scores, lists, exposure statistics, metrics và config thực dùng.
+
+Framework chịu trách nhiệm nối các thành phần, nhưng người nghiên cứu vẫn chịu trách nhiệm về câu hỏi khoa học. Nếu group target là chia đều publisher, cần biện minh vì sao chia đều phù hợp. Nếu dùng popularity decile, phải tính từ train. Nếu dùng item count làm group size, không được gọi nó là customer satisfaction.
+
+Một contract tốt cho reranker ghi rõ: score có shape(users,items) hay chỉ(users,candidates); ID là global item ID hay cột cục bộ; input có −∞ cho item đã thấy không; output là thứ tự hay tập item; mỗi user được bao nhiêu item; ties xử lý thế nào. Không viết contract này dễ tạo lỗi âm thầm: số cột thứ5 của user1 là phim khác số cột thứ5 của user2 nhưng evaluator lại coi cùng global ID.
+
+Trong luận văn, nên gắn mỗi artifact với `dataset_hash`, `split_hash`, `checkpoint_id`, `item_mapping_hash`, `candidate_policy` và `seed`. Lưu logpath đơn thuần không đủ nếu hai lần chạy dùng chung tên và ghi đè. Đây là đề xuất quản trị thực nghiệm của tài liệu, không phải khẳng định mọi trường này đã có sẵn trong FairDiverse.
+
+## 4. Prior art và gap: toolkit giải quyết phần nào?
+
+RecBole đã hỗ trợ nhiều recommendation models và cấu hình thống nhất. Các toolkit fairness khác hỗ trợ những khâu hoặc nhiệm vụ khác. FairDiverse mở rộng không gian tích hợp fairness/diversity cho cả search và recommendation. Điều đó không có nghĩa các thuật toán được tích hợp là ý tưởng mới của bài toolkit; mỗi thuật toán vẫn cần citation riêng và kiểm tra khác biệt reimplementation.
+
+Gap thực dụng là các paper thường dùng dataset, split, candidate lists và fairness metrics khác nhau. Một thuật toán thắng trên một thiết lập chưa đủ so với thuật toán khác. Một toolkit giúp giảm công sức nối hệ thống; nó không tự làm mọi lựa chọn thành giống nhau, vì thuật toán training và reranking vẫn có mục tiêu, input và chi phí khác nhau.
+
+Với CSE631, gap có điều kiện là một benchmark temporal ba mục tiêu có kiểm tra candidate feasibility và độ tin cậy. Nếu chỉ gọi sẵn nhiều API rồi trình bày dashboard, đó chủ yếu là triển khai. Đóng góp luận văn/paper cần nằm ở cơ chế mới, kiểm định giả thuyết hoặc phát hiện thực nghiệm đủ chắc, có thể bác bỏ.
+
+## 5. Công thức cần hiểu trước khi đọc bảng metrics
+
+Các công thức trong mục này là phần giảng nền độc lập, không phải “loss FairDiverse” mới.
+
+Với user u và item i, base scorer cho sᵤᵢ. Với BPR, loss ranking theo cặp có dạng −logσ(sᵤᵢ−sᵤⱼ) cộng regularization, i là positive và j là negative được sampling. Tăng chênh lệch điểm positive–negative làm loss nhỏ. Nếu module fairness thay trọng số của từng mẫu, nó can thiệp lúc training; nếu sửa top-K sau scoring, nó là post-processing. Hai vị trí này không thể so tổng cost chỉ bằng latency cuối.
+
+Với ranking πᵤ và attention aᵣ, exposure của item là eᵢ=ΣᵤΣᵣaᵣ1[πᵤ(r)=i]. Với ánh xạ một item thuộc đúng một group, E_g=Σᵢ∈g eᵢ. Tổng group exposure bằng tổng item exposure. Nếu item multi-label, cần fractional membership hᵢg≥0, Σ_g hᵢg=1; khi đó E_g=Σᵢhᵢg eᵢ vẫn bảo toàn tổng khối lượng.
+
+**Chứng minh độc lập:** Σ_gE_g=ΣᵢeᵢΣ_ghᵢg=Σᵢeᵢ. Nếu thay h bằng indicator của mọi nhãn mà không chia, một item hai nhãn được đếm hai lần; entropy và target exposure lúc đó không còn cùng đơn vị. Đây là lý do schema metadata cần đi cùng định nghĩa metric.
+
+Catalog coverage= số item xuất hiện ít nhất một lần/n. Gini item exposure=ΣᵢΣⱼ|eᵢ−eⱼ|/(2nΣe). Entropy group=−Σ_gp_glogp_g, p_g=E_g/ΣE. Catalog coverage không quan tâm vị trí hoặc số lần; entropy group không phân biệt các item trong cùng group. Một hệ thống có thể đạt entropy nhóm cao trong khi chỉ hai item trong catalog nhận exposure.
+
+NDCG held-out dùng gain từ nhãn test và normalization theo ideal ranking của nhãn đó. Score-retention NDCG dùng score mô hình nền làm gain và ideal là xếp theo score. Hai tỷ lệ có thể cùng gọi NDCG nhưng trả lời hai câu hỏi khác nhau. Chúng cần cột riêng trong báo cáo.
+
+## 6. Quy trình và mã giả, không tạo thuật toán giả cho toolkit
+
+Đây là workflow học tập do tài liệu đề xuất, bám cấu trúc phần mềm đã đọc:
+
+```text
+Định nghĩa nhiệm vụ, universe item, group target và metrics
+Chuẩn bị dữ liệu + split + ID mappings có version
+Ghép config mặc định, dataset, model, evaluation, user overrides
+Huấn luyện base model trên train; chọn checkpoint bằng validation
+Xuất scores/candidates cùng masks và manifest
+Với mỗi reranker và cấu hình validation:
+    Dùng cùng cache và constraints
+    Kiểm tra output đủ K, không trùng, thuộc candidates hợp lệ
+    Lưu lists và compute cả held-out accuracy lẫn exposure/diversity
+Chốt cấu hình; chạy test; tổng hợp seeds và confidence intervals
+```
+
+Để thêm phương pháp riêng, nên bắt đầu với một reranker nhận score matrix và K, trả ID matrix. Trước hết cho nó trả nguyên top-K để kiểm tra wrapper không làm đổi base result. Sau đó mới thêm diversity/exposure. Nếu identity wrapper đã làm NDCG khác, nguyên nhân có thể là ID mapping, mask hoặc evaluator chứ chưa phải cơ chế nghiên cứu.
+
+Không giả định đặt `fair-rank=True` là mọi result fair hơn. Flag quyết định cách route model, không phải một thuộc tính đạo đức đã được chứng minh. Cũng không ép một algorithm tối ưu group utility bằng score sang metric quota exposure mà không xem nó thực sự nhận mục tiêu gì.
+
+## 7. Ví dụ nguyên bản: cùng một output, nhiều góc nhìn
+
+**Dữ liệu giảng dạy tự xây dựng**, ba users, bốn item A,B,C,D; A/B thuộc head, C/D thuộc tail. Điểm của u1 là(0,95;0,90;0,80;0,20), u2(0,93;0,88;0,40;0,84), u3(0,92;0,87;0,86;0,10). K=2, attention mỗi slot bằng1.
+
+Base top2 là[A,B] cho cả ba. Tổng predicted utility bằng0,95+0,90+0,93+0,88+0,92+0,87=5,45. Exposure theo item là(3,3,0,0). Coverage=2/4=0,5. Trong tổng sai khác Gini, có8 cặp có thứ tự giữa một item exposure3 và một item0, mỗi cặp chênh3; tổng24. Mẫu số2×4×6=48 nên Gini=0,5.
+
+Một policy giả định trả u1[A,C], u2[A,D], u3[A,C]. Utility=0,95+0,80+0,93+0,84+0,92+0,86=5,30. Exposure=(3,0,2,1). Coverage=3/4=0,75; đừng ghi là1 vì item B đã biến mất hoàn toàn. Tổng sai khác có thứ tự là20, Gini=20/48=0,416667.
+
+Group exposure từ(6,0) thành(3,3). Entropy từ0 thành−2×0,5ln0,5=ln2≈0,693147. Score retention=5,30/5,45≈0,972477; mất khoảng2,75% tổng điểm dự báo. Tất cả con số đều hợp lý nhưng vẫn chưa biết held-out NDCG, vì toy chưa cho nhãn test. Đây chính là bài học: giữ predicted utility không tự là giữ accuracy thật.
+
+Toy còn minh họa config precedence. Defaults cho `topk=[10]`, model config đổi thành[20], user override đổi thành[2]; dictionary merge theo thứ tự cuối cho[2]. Nếu chỉ chụp defaults và báo đã đánh giáK10 trong khi actual config làK2, báo cáo sai dù thuật toán chạy không báo lỗi.
+
+Chạy script riêng, chỉ cần Python chuẩn:
+
+```bash
+python3 Vi_du_chay_tay/12_FairDiverse.py
+```
+
+Output đã kiểm tra gồm baseline utility5,450000/coverage0,500000/Gini0,500000; reranked5,300000/0,750000/0,416667; `score_retention=0.972477`. Script không import FairDiverse và không được gọi là tái lập toolkit.
+
+## 8. Đọc code chính thức theo đường dữ liệu
+
+[trainer.py](https://raw.githubusercontent.com/XuChen0427/FairDiverse/master/fairdiverse/recommendation/trainer.py) định nghĩa `RecTrainer`, `load_configs`, `Set_Dataset`, `check_model_stage`, `train`. `Set_Dataset` chọn point/pair/sequential; `train` gọi `Process`, xây model và optimizer, route reweighting/sampling/regularizer. Cuối pipeline có nhánh lưu `ranking_scores.npz` khi bật lưu scores. Đây là code map đã đọc tĩnh, không phải traceback của một lần chạy.
+
+[reranker.py](https://raw.githubusercontent.com/XuChen0427/FairDiverse/master/fairdiverse/recommendation/reranker.py) định nghĩa `RecReRanker.load_configs` và `.rerank`. Nó đọc cache từ logpath, dispatch CPFair/FairRec/PMMF/TaxRank/ElasticRank…, rồi lưu `test_result.json`, `exposure_result.json`, `config.yaml`. `train_config` được ghép sau cùng nên có quyền ghi đè. Cần lưu config sau merge để tái lập. [Nguồn code reranker](https://raw.githubusercontent.com/XuChen0427/FairDiverse/master/fairdiverse/recommendation/reranker.py).
+
+[process_dataset.py](https://raw.githubusercontent.com/XuChen0427/FairDiverse/master/fairdiverse/recommendation/process_dataset.py) có `Process`, `build_map`, `build_item_map`; code được web trả ở dạng dòng dài nên không lưu như một file Python thực thi. Có bước sắp timestamp rồi chia các lát train/validation/test; tỷ lệ lấy từ config. Không xác minh được đủ YAML để gán tỷ lệ cố định cho bản benchmark bài báo. Không suy code branch hiện hành trùng toàn bộ snapshot thời điểm công bố.
+
+### Các quan sát kỹ thuật cần kiểm tra trước tái lập
+
+Trong nguồn trainer đã đọc, `best_result=-1` đặt trong vòng epoch trước bước validation. Điều đó có thể làm checkpoint bị ghi lại ở lần đánh giá sau dù metric thấp hơn lần trước. Đây là nhận xét đọc tĩnh, cần pin commit, đọc indentation và chạy regression nhỏ trước khi kết luận lỗi trên môi trường thực. Không được ghi đã sửa hoặc đã tái hiện khi chưa làm.
+
+Nguồn reranker đọc sparse score rồi gọi `.toarray()`, nên cache thưa không bảo đảm peak RAM nhỏ. Nó tính utility-retention dựa score gốc; phần tính DCG sắp lại selected scores. Nếu nghiên cứu thứ tự hiển thị, cần kiểm tra metric riêng dùng đúng output order và nhãn held-out. Các điểm này không phủ nhận đóng góp toolkit, nhưng chỉ ra wrapper đánh giá là một phần của nghiên cứu cần audit.
+
+## 9. Cài đặt và lệnh chạy được xác minh từ tài liệu
+
+README nêu Python, NumPy, PyTorch, pandas, SciPy, scikit-learn, YAML và một số solver. Nhánh RAIF yêu cầu Gurobi license; LLM ranking có yêu cầu bổ sung và Linux. Danh sách version trong README là khai báo, không phải môi trường đã được tài liệu này cài thử. Không gán một version Python cũ chỉ từ lower bound rồi giả định mọi dependency mới tương thích.
+
+Lệnh quick-start chính thức, chạy từ thư mục chứa `main.py` theo README:
+
+```bash
+python main.py --task recommendation --stage in-processing --dataset steam --train_config_file In-processing.yaml
+python main.py --task recommendation --stage post-processing --dataset steam --train_config_file Post-processing.yaml
+```
+
+Với API, các điểm vào chính là `RecTrainer(train_config=config).train()` và `RecReRanker(train_config=config).rerank()`. [Nguồn quick-start](https://github.com/XuChen0427/FairDiverse). Cần có dataset, processed configuration và ranking scores ở đúng đường dẫn trước khi chạy post-processing. Nếu cache thiếu, nguồn code có kiểm tra path; không nên tạo file rỗng để vượt qua lỗi.
+
+Mã lưu trong `Ma_nguon/12_FairDiverse` là ghi chú và trích đoạn đọc qua web, không phải repo đầy đủ hoặc lockfile. Để tái lập chính thức, tải repo qua mạng khả dụng, lưu commit SHA, license, checksum và lệnh exact; kiểm tra small run trước full dataset. Các thao tác đó chưa được thực hiện trong phiên tài liệu này.
+
+## 10. Thiết kế thực nghiệm: học gì từ benchmark, bổ sung gì cho luận văn?
+
+Benchmark của toolkit cho thấy các mục tiêu có thể đánh đổi; không nên biến default benchmark thành kết luận thuật toán nào tốt nhất. FairDual có NDCG cao hơn FairNeg ở cấu hình trích dẫn, còn Gini thấp hơn thuộc FairNeg. Người dùng cần chọn một điểm hoạt động theo tiêu chí được xác định trước, không chọn theo metric thuận lợi sau khi xem test.
+
+Search datasets như ClueWeb và COMPAS có nhiệm vụ/nhãn khác recommendation. Không lấy diversity judgements của search như thể category metadata của sản phẩm. Tương tự, NDCG từ sampled candidate evaluation và full-catalog evaluation cần tách. Nguồn preprocessing đọc được có sampling negatives, nên khi chuyển sang CSE631 phải khai báo evaluator protocol mới.
+
+Cần lưu dữ liệu gốc và dữ liệu đã xử lý riêng, ghi drop rules và mapping. Đặc biệt nếu lọc theo toàn lịch sử trước temporal split, khả năng tồn tại user/item đã được chọn bằng tương lai cần được thừa nhận. Nếu negative sampling biết future positives để tránh sampled negatives, cần phân biệt đó là convention offline với mô phỏng tại cutoff chỉ biết quá khứ.
+
+Đề xuất tối thiểu cho máy16GB: ML100K để debug, ML1M và Amazon subset cho kết luận; BPR checkpoint chung; MMR/popularity penalty/SMMR/ElasticRank/proposed; K5/10/20, M100 và sensitivity. Đo held-out NDCG, Recall, ILD, coverage, Gini toàn catalog, target gap, latency và RAM. Đây là thiết kế do tài liệu đề xuất, không phải setting gốc của FairDiverse.
+
+Một caption Bảng4 trong arXivv1 ghi ClueWeb trong khi mô tả §5.1 nói Steam+DMF. Tài liệu tránh sao số bảng đó và ưu tiên final PDF khi đối chiếu. Chi tiết caption nhỏ có thể gây lỗi lớn nếu gán kết quả recommendation cho một dataset search.
+
+## 11. Đóng góp, giới hạn và ba hướng phát triển có thể kiểm chứng
+
+Đóng góp khoa học/cộng đồng là interface, khả năng tích hợp và benchmark; giá trị nằm ở giảm chi phí so sánh và mở rộng. Nhận xét của tài liệu: framework không tự chứng minh không leakage, không làm chuẩn tắc fairness trở nên duy nhất, và không bảo đảm mỗi implementation tương đương repo gốc. Giới hạn default settings và khả năng khác biệt khi reimplementation phải được giữ trong diễn giải.
+
+**Hướng A: benchmark invariants.** Xây bộ kiểm tra mapping, mask, identity reranker, full-catalog denominator và order-sensitive metric. So conclusions trước/sau khi thống nhất semantics, đối chiếu với các bài metric TORS và DPFR. Ablation từng convention, giữ predictions để xác định nguồn khác biệt. Bác bỏ đóng góp nếu chỉ là một bug đơn lẻ không có bài học phương pháp hoặc không làm khác kết luận.
+
+**Hướng B: candidate-aware fairness.** Gắn report khả thi: group nào không có item trong pool; quota nhỏ nhất có thể đạt; vì sao reranker vi phạm. Prior art gần là FairSync/DPFR; không tuyên bố mới việc retrieval ảnh hưởng fairness. So cùng pool, sau đó track enrichment riêng ở cùng M. Bác bỏ giả thuyết nếu báo cáo feasibility không giải thích khác biệt hoặc enrichment chỉ thắng do tăng ngân sách.
+
+**Hướng C: reproducibility dưới drift và tài nguyên.** Chuẩn hóa rolling windows, counts theo cutoff và compute budget16GB. Đối chiếu rerankers ở cùng candidate caches và mean/CI qua seeds. Ablation fixed versus changing popularity groups, thread count và score precision. Một wrapper mới chỉ đủ giá trị khi dẫn đến phát hiện ổn định về trade-off hoặc thứ hạng thuật toán, kèm raw artifacts tái lập được.
+
+## 12. Nguồn tham khảo và chuẩn tự kiểm
+
+Nguồn chính: [publisher](https://doi.org/10.1145/3726302.3730280), [final PDF](https://pure.uva.nl/ws/files/304772377/3726302.3730280.pdf), [HTML](https://arxiv.org/html/2502.11883v1), [repo/README](https://github.com/XuChen0427/FairDiverse), [docs](https://xuchen0427.github.io/FairDiverse/), [trainer](https://raw.githubusercontent.com/XuChen0427/FairDiverse/master/fairdiverse/recommendation/trainer.py), [reranker](https://raw.githubusercontent.com/XuChen0427/FairDiverse/master/fairdiverse/recommendation/reranker.py), [processor](https://raw.githubusercontent.com/XuChen0427/FairDiverse/master/fairdiverse/recommendation/process_dataset.py), [RecBole](https://github.com/RUCAIBox/RecBole).
+
+Trước khi đưa toolkit vào luận văn, tự giải thích được: config nào thắng khi trùng key; cache có masks và mapping gì; NDCG đang dùng gain nào; exposure tính theo item hay group; checkpoint có đúng best validation; output order được evaluator dùng thế nào. Khi trả lời được, việc chạy nhiều baselines mới tạo bằng chứng nghiên cứu có thể kiểm tra.
+
+Bài tập thực hành nhỏ: cho policy chỉ hoán đổi hai item đã chọn mà không thay tập item. Catalog coverage và exposure không xét vị trí phải giữ nguyên; held-out NDCG có thể đổi nếu relevance hai item khác nhau. Nếu mọi metric của wrapper đều giữ nguyên, kiểm tra liệu code có sắp lại scores trước khi chấm. Phép thử này giúp tách metric chọn tập với metric thứ tự, thay vì coi chúng tương đương vì cùng tên ranking.
+
+
+## Phụ lục A. Danh mục trích dẫn chuẩn hóa
+Các mục dưới đây ghi đủ tên công trình, năm/nơi công bố và link để tra cứu. Gồm bài chính và tài liệu đối chiếu cho luận văn; không khẳng định mọi mục đều nằm trong bibliography của bài gốc. Mã A1, A2… chỉ dùng trong phụ lục của tài liệu này.
+
+[A1] Chen Xu, Zhirui Deng, Clara Rus, Xiaopeng Ye, Yuanna Liu, Jun Xu, Zhicheng Dou, Ji-Rong Wen, Maarten de Rijke. FairDiverse: A Comprehensive Toolkit for Fairness- and Diversity-aware Information Retrieval. ACM SIGIR 2025, resource paper, tr. 3540–3550. [DOI 10.1145/3726302.3730280](https://doi.org/10.1145/3726302.3730280). [Bài/toàn văn](https://pure.uva.nl/ws/files/304772377/3726302.3730280.pdf); [code](https://github.com/XuChen0427/FairDiverse).
+
+[A2] Theresia Veronika Rampisela, Maria Maistro, Tuukka Ruotsalo, Falk Scholer, Christina Lioma. Relevance-aware Individual Item Fairness Measures for Recommender Systems: Limitations and Usage Guidelines. ACM Transactions on Recommender Systems 4(3), Article 37, 45 trang; online 05/03/2026. [DOI 10.1145/3765624](https://doi.org/10.1145/3765624). [Bài/toàn văn](https://doi.org/10.1145/3765624); [code](https://github.com/theresiavr/relevance-aware-item-fairness-measures-recsys).
+
+[A3] Theresia Veronika Rampisela, Tuukka Ruotsalo, Maria Maistro, Christina Lioma. Joint Evaluation of Fairness and Relevance in Recommender Systems with Pareto Frontier. ACM The Web Conference 2025, tr. 1548–1566. [DOI 10.1145/3696410.3714589](https://doi.org/10.1145/3696410.3714589). [Bài/toàn văn](https://arxiv.org/html/2502.11921v1); [code](https://github.com/theresiavr/DPFR-recsys-evaluation).
+
+[A4] Chen Xu, Yuxin Li, Wenjie Wang, Liang Pang, Jun Xu, Tat-Seng Chua. Bridging Jensen Gap for Max-Min Group Fairness Optimization in Recommendation. ICLR 2025, conference paper. [Bài/toàn văn](https://proceedings.iclr.cc/paper_files/paper/2025/hash/184a03a3ad07e8897c62461c02634b02-Abstract-Conference.html); [code](https://github.com/XuChen0427/FairDual).
+
+[A5] Wayne Xin Zhao và cộng sự. RecBole: Towards a Unified, Comprehensive and Efficient Framework for Recommendation Algorithms. CIKM 2021. [DOI 10.1145/3459637.3482016](https://doi.org/10.1145/3459637.3482016); [code](https://github.com/RUCAIBox/RecBole).

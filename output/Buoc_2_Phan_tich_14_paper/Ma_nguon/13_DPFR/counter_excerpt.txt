@@ -1,0 +1,9 @@
+PROVENANCE: pareto/generate_pareto.py, official source read through web 2026-11-15.
+URL: https://raw.githubusercontent.com/theresiavr/DPFR-recsys-evaluation/main/pareto/generate_pareto.py
+Helper excerpt only. This is not a full standalone Oracle2Fair module.
+
+def fast_counter(series_to_count):
+    my_counter = Counter()
+    for row in series_to_count:
+        my_counter.update(row)
+    return my_counter

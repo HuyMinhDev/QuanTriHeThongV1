@@ -1,0 +1,4 @@
+baseline utility=5.450000 coverage=0.500000 gini=0.500000 group_entropy=-0.000000
+reranked utility=5.300000 coverage=0.750000 gini=0.416667 group_entropy=0.693147
+score_retention=0.972477
+config_precedence: topk=[2]

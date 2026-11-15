@@ -1,0 +1,6 @@
+A average=0.550000 distance=0.581646
+B average=0.425000 distance=0.577765
+C average=0.500000 distance=0.376181
+enumerated_frontier: relevance=1.000000 one_minus_gini=0.333333
+enumerated_frontier: relevance=0.500000 one_minus_gini=0.666667
+all_assignments=9; exact_frontier_for_toy_only=True

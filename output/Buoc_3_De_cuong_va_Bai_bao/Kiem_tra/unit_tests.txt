@@ -1,0 +1,18 @@
+test_cvar_dual_envelope_matches_atom_calculation (test_core.ResearchChecks.test_cvar_dual_envelope_matches_atom_calculation) ... ok
+test_fractional_tail_and_endpoint_cvar (test_core.ResearchChecks.test_fractional_tail_and_endpoint_cvar) ... ok
+test_initial_bound_proves_infeasibility_without_oracle_search (test_core.ResearchChecks.test_initial_bound_proves_infeasibility_without_oracle_search) ... ok
+test_local_greedy_budget_can_destroy_completion (test_core.ResearchChecks.test_local_greedy_budget_can_destroy_completion) ... ok
+test_lower_bounds_valid_on_random_residual_assignments (test_core.ResearchChecks.test_lower_bounds_valid_on_random_residual_assignments) ... ok
+test_milp_agrees_with_exhaustive_risk_optimum (test_core.ResearchChecks.test_milp_agrees_with_exhaustive_risk_optimum) ... ok
+test_milp_cannot_invent_missing_categories (test_core.ResearchChecks.test_milp_cannot_invent_missing_categories) ... ok
+test_mixture_bound_catches_joint_scenario_support (test_core.ResearchChecks.test_mixture_bound_catches_joint_scenario_support) ... ok
+test_position_weighted_exposure_distinguishes_order (test_core.ResearchChecks.test_position_weighted_exposure_distinguishes_order) ... ok
+test_priority_uses_incremental_category_gain (test_core.ResearchChecks.test_priority_uses_incremental_category_gain) ... ok
+test_small_bound_is_not_positive_feasibility_certificate (test_core.ResearchChecks.test_small_bound_is_not_positive_feasibility_certificate) ... ok
+test_unknown_without_initial_witness_is_not_infeasible (test_core.ResearchChecks.test_unknown_without_initial_witness_is_not_infeasible) ... ok
+test_witness_fallback_with_no_extra_checks_remains_feasible (test_core.ResearchChecks.test_witness_fallback_with_no_extra_checks_remains_feasible) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.402s
+
+OK

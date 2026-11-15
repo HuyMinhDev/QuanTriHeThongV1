@@ -1,0 +1,6 @@
+Borda scores: {'A': 8, 'B': 6, 'C': 7, 'D': 3}
+base: ['A', 'B'] rerank: ['A', 'C']
+RBO=0.750000 NLIP=0.500000
+catalog coverage=0.750000 target-normalized=0.882353
+fairness arithmetic mean=0.500000 Lhalf=0.450000
+second coverage example raw1.0 / target0.65 = 1.538462

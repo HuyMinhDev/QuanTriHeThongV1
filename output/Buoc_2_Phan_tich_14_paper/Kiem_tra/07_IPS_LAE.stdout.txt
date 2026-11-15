@@ -1,0 +1,8 @@
+counts [3. 2. 1.]
+alpha=-1.039721
+propensity [0.585786 0.514719 0.414214]
+weights [1.707107 1.942809 2.414214]
+scores [0.       0.285714 0.272727]
+weighted_scores [0.       0.555088 0.658422]
+unseen_order: B,C -> C,B
+closed_form_matches_constrained_solve=True

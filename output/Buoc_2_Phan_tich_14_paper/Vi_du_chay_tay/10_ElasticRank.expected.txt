@@ -1,0 +1,6 @@
+user 0 q= [0.5, 0.5] anchor= 1
+distance= [-0.0, -0.0] top2= [0, 1]
+user 1 q= [0.733333, 0.266667] anchor= 0
+distance= [-0.0, 33.558239] top2= [2, 3]
+final smoothed utility= [2.75, 2.55]
+second-user score retention=0.896630 heldout NDCG=0.000000

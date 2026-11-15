@@ -1,0 +1,145 @@
+CSE631  |  ĐỀ TÀI 07  |  BƯỚC 2
+PAPER 05ĐỌC, HIỂU VÀ PHÂN TÍCH
+Diversification as Risk Minimization
+Rikiya Takehi; Fernando Diaz; Tetsuya Sakai
+ACM WSDM 2026, tr. 618–628
+DOI: 10.1145/3773966.3777985  |  Bài/toàn văn  |  Code chính thức
+Hướng dẫn tiếng Việt cho người mới bắt đầu
+Từ bài toán, định nghĩa và công thức đến mã giả, ví dụ số, đọc code, thực nghiệm và hướng phát triển luận văn.
+Ngữ cảnh: accuracy–diversity–exposure balanced reranking; điều kiện dự kiến máy 16 GB RAM.
+Phạm vi kiểm chứng
+Đọc tài liệu và mã nguồn truy cập được; chạy các ví dụ giảng giải nhỏ. Chưa huấn luyện lại hoặc tái lập đầy đủ benchmark gốc. Ví dụ tự xây dựng và nhận xét độc lập được ghi nhãn trong nội dung.
+Các tệp mã kèm theo là phần đã đọc/trích xuất qua web; xem SOURCE.md để biết phần thiếu và link repo đầy đủ. Tài liệu không thay thế bài gốc và điều kiện sử dụng dữ liệu/mã nguồn.
+
+1. Nhận diện công trình và cách sử dụng tài liệu
+Diversification as Risk Minimization — Rikiya Takehi, Fernando Diaz, Tetsuya Sakai; WSDM 2026, tr. 618–628; DOI 10.1145/3773966.3777985. Bản HTML tác giả, PDF bản công bố, repo.
+Bài nghiên cứu một mục tiêu đa dạng có xét rủi ro: danh sách có thể tốt ở mức trung bình nhưng bỏ quên hoàn toàn một ý định ít phổ biến. VRisk là phép đo rủi ro; VRisker là thuật toán dựng danh sách để giảm phép đo đó. Đây không phải mô hình huấn luyện embedding mới và cũng không phải thuật toán bảo đảm exposure công bằng giữa mọi sản phẩm.
+Phần diễn giải dưới đây tách ba lớp: nội dung tác giả công bố; phép tính lại phục vụ học tập; và nhận xét kiểm tra độc lập. Hai lớp sau được ghi rõ để người đọc không trích nhầm thành kết quả của tác giả. Các nhận xét lý thuyết gắn với công thức/phiên bản đã đọc, cần đối chiếu bản cập nhật trước khi đưa vào một bài phản biện chính thức.
+2. Kiến thức đầu vào và bản đồ đọc paper
+Bạn cần biết top-K là danh sách K kết quả tốt nhất; relevance là mức phù hợp; một user có thể có nhiều nhu cầu; kỳ vọng là trung bình có trọng số xác suất; greedy là quyết định từng vị trí. Ví dụ một người vừa thích phim hành động vừa thích tài liệu. Nếu hành động thường có điểm cao hơn một ít, top-10 thuần relevance có thể gồm toàn hành động dù tài liệu vẫn là nhu cầu quan trọng.
+Nên đọc §3 trước để biết biến nào là input, §4 để hiểu loss/CVaR, §5 để theo thuật toán, §6 để hiểu thực nghiệm, rồi mới đọc phụ lục chứng minh. Không bắt đầu bằng ghi nhớ tên các định lý. Khi gặp một công thức, trước hết hỏi: nó trả về một số cho một item, một intent hay cả danh sách? Xác suất đang lấy trên intent của một query hay trên toàn dân số users?
+Hai khái niệm cần tách: uncertainty về intent là chưa biết user đang cần loại nội dung nào; uncertainty của dự báo relevance là chưa biết điểm dự báo có đúng không. Bài này mô hình hóa phân bố intent đã biết/ước lượng trước; không giải đầy đủ bài toán học độ bất định của mô hình gợi ý.
+3. Bài toán nghiên cứu: input, output, giả định
+Với một query q, cho tập ứng viên D, tập ý định C(q), phân bố p(c|q), relevance có điều kiện rel(d|q,c), độ dài k và mức rủi ro β. Output là một danh sách R_k không lặp item. Trong hệ gợi ý, có thể hiểu q là một user, d là phim, c là thể loại/ý định. Mọi giá trị intent và relevance phải có nguồn trước khi rerank.
+Giả định của mô hình là intent loại trừ nhau theo nghĩa biến ngẫu nhiên chọn một intent, tổng xác suất bằng 1. Điều này không có nghĩa một phim chỉ có một genre: phim có thể mang nhiều nhãn; relevance của nó theo từng intent được cung cấp riêng. Bài giả định các phân bố và relevance đã biết hoặc được ước lượng; cách ước lượng không phải đóng góp chính.
+Relevance tổng hợp được định nghĩa bằng kỳ vọng: rel(d|q)=Σ_c p(c|q)rel(d|q,c). Chẳng hạn p(action)=0,7, p(documentary)=0,3, phim có relevance theo hai intent là 0,9 và 0,2 thì relevance chung là 0,7×0,9+0,3×0,2=0,69. Con số 0,69 có cùng đơn vị relevance, không tự trở thành xác suất click.
+Naive ranking chỉ sắp theo relevance chung. Input user có một intent xác suất thấp không có nghĩa có thể bỏ qua nó vô điều kiện; chính sách phải xác định mức rủi ro chấp nhận được.
+4. Công trình liên quan đã làm gì và khoảng trống cụ thể
+MMR [R3] phạt item giống các item đã chọn, giúp giảm trùng lặp. Nó không trực tiếp tối thiểu hóa tổn thất của phần intent được phục vụ tệ nhất. Calibrated Recommendations [R4] tìm cách làm phân bố đề xuất phù hợp với phân bố sở thích lịch sử; phù hợp phân bố khác với bảo đảm mọi intent có utility đủ tốt.
+Nhóm intent-aware diversification tính utility theo intent rồi tổng hợp. Bài chỉ ra với utility tuyến tính, “lấy trung bình theo intent” có thể tương đương tối ưu relevance trung bình thuần. Vì vậy chỉ đưa p(c|q) vào công thức chưa đủ tạo bảo vệ phần đuôi.
+Nghiên cứu fairness of exposure [R5] phân bổ vị trí/chú ý cho item hoặc nhóm item. VRisk tập trung vào utility của intent trong một danh sách. Hai mục tiêu có thể hỗ trợ hoặc xung đột, không thể dùng tên gọi fairness thay cho risk hay ngược lại.
+Khoảng trống mà tác giả nhắm tới: chuyển từ trung bình utility sang tail risk ở cấp intent trong một query. Khi áp vào đề tài cao học, khoảng trống còn cần kiểm tra là hiệu quả với relevance dự báo và lịch sử thưa, cùng ràng buộc exposure trên nhiều users. Không được viết rằng trước bài này chưa có nghiên cứu rủi ro trong hệ gợi ý; khác biệt nằm ở đơn vị rủi ro và bước diversification.
+5. Định nghĩa, ký hiệu và các phép tính nền
+Ký hiệu
+Cách hiểu
+Ví dụ
+q, d, c
+Query/user, item, intent
+User An; phim A; nhu cầu tài liệu.
+p_c
+Khối xác suất của intent
+0,49 là 49% xác suất ý định, không phải 49% item.
+V_c(R)
+Utility danh sách nếu intent c xảy ra
+Trung bình relevance của các phim với intent c.
+V_tgt,c
+Utility mục tiêu
+Utility của oracle chỉ phục vụ c, hoặc một baseline.
+ℓ_c(R)
+Thiếu hụt so mục tiêu
+max(0,V_tgt,c−V_c(R)).
+β
+Khối xác suất phần đuôi cần bảo vệ
+β=0,10 xét 10% khối intent có loss cao nhất.
+ζ
+Ngưỡng phân tách phần đuôi
+Là biến tối ưu phụ, không phải một loss mới.
+Φ(R)
+Mức giảm risk so danh sách rỗng
+Risk(∅)−Risk(R).
+
+Với độ dài cuối k cố định, utility trung bình theo intent là V_c(R)=Σ_{d∈R}rel(d|q,c)/k. Đối với một prefix ngắn, phải ghi rõ dùng mẫu số k hay độ dài prefix. Hai quy tắc trùng nhau ở danh sách cuối nhưng có thể dẫn tới lựa chọn greedy và tính chất toán học khác nhau.
+Tính tuyến tính của kỳ vọng: V_IW(R)=Σ_c p_c V_c(R). Thay công thức V_c vào rồi đổi thứ tự hai tổng: V_IW=(1/k)Σ_d Σ_c p_c rel(d|q,c)=(1/k)Σ_d rel(d|q)=V_std. Đây là giải thích đại số cho Eq.6, không cần “AI suy đoán” rằng intent weighting luôn tạo diversity. Kết luận này dùng utility tuyến tính và cùng mẫu số; không tự áp cho mọi phiên bản nDCG/ERR.
+Loss dùng hinge [x]_+=max(0,x). Nếu target=0,8, utility=0,6 thì loss=0,2; utility=0,9 cho loss=0, không phải −0,1. Nhờ vậy vượt target của một intent không tạo khoản âm để bù cho intent bị bỏ quên.
+6. CVaR: hiểu đúng phần đuôi và tính chất
+Dạng tính được của Eq.10 là:
+VRisk(R;β)=min_ζ {ζ+(1/β)Σ_c p_c[ℓ_c(R)−ζ]_+}.
+Hình dung xếp các intent theo loss giảm dần, lấy đúng β đơn vị khối xác suất đầu tiên và tính trung bình loss của phần được lấy. Nếu điểm cắt đi qua một intent, chỉ lấy phần khối lượng cần thiết của intent đó. Trong phân bố rời rạc, đây là chi tiết thiết yếu.
+Ví dụ tự xây dựng: loss=[1,0], xác suất=[0,1;0,9], β=0,2. Phần đuôi gồm 0,1 khối loss=1 và 0,1 khối loss=0, nên CVaR=(0,1×1+0,1×0)/0,2=0,5. Nếu chọn một ngưỡng rồi lấy toàn bộ mọi intent có loss≥ngưỡng, có thể nhận 0,1 thay vì 0,5. Vì vậy conditional tail mean và công thức tối ưu chỉ tương đương khi xử lý atom ở biên đúng quy ước.
+Khi β=1, ta lấy toàn bộ khối xác suất, VRisk=Σ_c p_cℓ_c: trở về expected loss. Khi β giảm, metric nhấn mạnh các loss cao; điều này không có nghĩa accuracy sẽ tăng. Với utility không giảm khi thêm item, target cố định và mẫu số utility cố định, mỗi loss không tăng; CVaR cũng không tăng vì nó đơn điệu theo từng loss.
+Các đơn vị phải nhất quán: nếu utility trên thang rating thì risk cũng có đơn vị rating; nếu utility nDCG chuẩn hóa thì risk nằm trên thang tương ứng. Không so một trị số risk rating=0,5 với risk nDCG=0,5 rồi kết luận hai hệ tương đương.
+Một risk thấp chỉ là bảo vệ intent dưới p_c và relevance đang dùng. Nếu ước lượng p_c sai hoặc relevance chứa bias, metric đẹp không chứng minh người dùng thật được bảo vệ.
+7. Kết quả lý thuyết và cách đọc chứng minh có kiểm tra
+NP-hardness: phụ lục quy bài toán chọn tối đa k tập để phủ nhiều phần tử có trọng số thành chọn k documents. Mỗi phần tử là một intent; mỗi tập là một document; relevance=1 khi document phủ intent. Chọn target phù hợp và β=1 thì giảm loss tương đương tăng trọng số được phủ. Nếu giải chính xác tổng quát rất dễ, cũng sẽ giải được bài toán phủ khó đó. Đây là lý do thực dụng để dùng greedy, không chứng minh mọi tập dữ liệu nhỏ đều khó.
+Bảo đảm greedy được tác giả công bố: §5.1 nêu mức giảm risk ít nhất (1−1/e)≈63,2% của mức giảm tối ưu cho modular utility; §5.2 nêu dạng yếu hơn theo submodularity ratio. “63%” là tỷ lệ của mức giảm risk, không phải accuracy 63% hay risk còn 37% trong mọi tình huống.
+Để hiểu chứng minh kiểu greedy, giả sử Φ đã được chứng minh là đơn điệu, submodular và Φ(∅)=0. Với k lựa chọn, ít nhất một phần tử của nghiệm tối ưu có marginal gain ≥ khoảng cách hiện tại/k. Sau mỗi bước, khoảng cách còn lại giảm hệ số không quá (1−1/k); sau k bước còn không quá e^−1. Đây là chuỗi lập luận có điều kiện; khâu quan trọng là xác nhận submodularity của đúng hàm đang dùng.
+Kiểm tra độc lập cần giữ trong sổ đọc: với Eq.10/13 và cách kéo dài modular utility trên prefix bằng mẫu số k cố định, một phản ví dụ nhỏ đặt câu hỏi về tính tổng quát của mệnh đề submodularity. Có hai intent xác suất 0,5/0,5, hai item A=(1,0), B=(0,1), k=2, target=0,5, β=0,5. Risk rỗng=0,5; risk khi chỉ A hoặc chỉ B đều=0,5; risk khi có cả hai=0. Do đó Φ(A)=Φ(B)=0 nhưng Φ(A,B)=0,5. Marginal gain của B sau A lớn hơn sau rỗng, trái với diminishing returns.
+Phản ví dụ này do tài liệu hướng dẫn tự xây dựng và đã chạy kiểm tra, không phải ví dụ của paper. Nó cho thấy không nên trích bảo đảm tổng quát khi chưa đối chiếu chính xác assumptions/phiên bản. Với ζ cố định, có thể chứng minh diminishing returns cho một biểu thức hinge; tối ưu lại ζ theo từng tập không tự bảo toàn tính chất đó. Phần thực nghiệm hữu ích của thuật toán vẫn cần được đánh giá độc lập với điểm cần làm rõ trong lý thuyết.
+8. Thuật toán VRisker từng bước và mã giả
+Chuẩn bị ma trận relevance theo intent và p_c. Tính target cho mỗi intent một lần; oracle target cần nhãn đầy đủ hoặc một mô hình dự báo, không thể lấy nhãn tương lai trong triển khai. Khởi tạo danh sách rỗng. Ở vị trí tiếp theo, thử thêm từng item chưa dùng; tính utility mới, loss từng intent và CVaR; chọn risk thấp nhất. Nếu hòa, chọn expected utility cao nhất. Lặp đến k.
+Input: candidates D, probabilities p, relevance matrix r, target t,       final length k, tail mass betaR = []repeat k times:    best = None    for d in D excluding items already in R:        trial = append(R, d)        v = utility_per_intent(trial)        losses = max(0, t - v)        risk = weighted_CVaR(losses, p, beta)        mean_utility = sum(p * v)        compare candidates by (risk ascending, mean_utility descending)    append the best candidate to Rreturn R
+Tie-breaking không chỉ để kết quả đẹp: nhiều item có thể làm cùng mức tail risk, nên utility là tín hiệu phụ để giữ relevance. Đặt thêm item-ID làm tie-break cuối giúp tái lập. Nếu dùng random tie-break thì phải lưu seed.
+Nên cập nhật utility của prefix theo kiểu incremental thay vì tính lại toàn bộ mỗi trial. Chi phí còn phụ thuộc cách tính weighted CVaR: bản sort đơn giản mất O(m log m) cho m intents mỗi trial; không gọi mọi implementation là O(m). Tuyên bố thời gian của paper dựa trên phép tính/triển khai được mô tả; Python minh họa có thể chậm hơn dù cho cùng output.
+9. Chạy tay trên dữ liệu ví dụ của paper
+Dùng đúng relevance/intent ở Bảng 1(a) của bản arXiv: p=(0,51;0,49), d1/d2 có relevance=(1,0), d3/d4=(0,1), k=2. Để nhìn rõ VRisk, phần này tự tính bằng AvgRel và Eq.10, không sao chép các trị số nDCG trong Bảng 1(b). Target oracle cho mỗi intent bằng 1.
+Danh sách
+Utility c1 / c2
+Expected utility
+Loss c1 / c2
+CVaR β=0,5
+d1,d2
+1 / 0
+0,51
+0 / 1
+0,98
+d1,d3
+0,5 / 0,5
+0,50
+0,5 / 0,5
+0,50
+d3,d4
+0 / 1
+0,49
+1 / 0
+1,00
+
+Tính hàng đầu: loss=1 có khối 0,49; để đủ β=0,5 phải lấy thêm 0,01 khối loss=0, nên risk=0,49/0,5=0,98. Danh sách trộn mất expected utility 0,01 nhưng giảm risk xuống 0,50. Đây là đánh đổi trên ví dụ, chưa phải kết quả benchmark thực.
+Bước 1: với quy tắc prefix zero-padding theo k=2, thử d1 cho utility=(0,5;0), loss=(0,5;1), risk=(0,49×1+0,01×0,5)/0,5=0,99. Thử d3 cho risk=1. Chọn d1; d2 tương đương thì tie-break bằng ID.
+Bước 2: thử thêm d2 cho risk=0,98; thêm d3/d4 cho risk=0,50. Chọn d3. Output d1,d3. Nếu bạn thu được d1,d2, hãy kiểm tra CVaR có lấy đúng khối probability hay chỉ chọn theo relevance trung bình.
+Tệp Vi_du_chay_tay/05_VRisker.py tính toàn bộ các hàng, hai bước greedy, trường hợp atom và phản ví dụ submodularity. Đây là chương trình giảng giải tự viết, không thay chương trình benchmark của tác giả.
+10. Đọc và lần theo mã nguồn chính thức
+Đã đọc src/real/run.py, src/real/utils/algo.py, src/real/utils/eval.py, src/real/config/config.yaml và requirements qua raw GitHub. Thư mục mã nguồn kèm gói giữ phần đã đọc; algo_ours_excerpt.py là trích phần đầu đến hết hàm ours, không phải toàn bộ repo. Chưa chạy benchmark chính thức.
+run.py nhận tên tham số cần sweep, nạp YAML và gọi run_experiment. Trong algo.py, ours nhận cprob dạng query×intent và qrels dạng query×intent×document; tạo target M0, lập mask candidates, tính utility thử và chọn item. eval.py có _cvar_one lấy đúng phần khối xác suất ở atom để tính CVaR evaluation.
+Điểm cần tái kiểm ở commit thực tế: nhánh vectorized CVaR trong algo.ours chọn toàn bộ loss≥quantile rồi chia cho toàn bộ khối tail, trong khi _cvar_one của eval.py cắt đúng khối β. Với atom ở biên, hai cách không nhất thiết giống nhau như ví dụ Mục 6. Ngoài ra algo.py có helper cùng tên che import và tính quantile không trọng số. Đây là quan sát đọc mã, không phải tuyên bố đã chạy benchmark và chứng minh mọi kết quả bài sai.
+README ghi đường src/run.py, nhưng cây repo được đọc có src/real/run.py và default config tương đối config/config.yaml. Vì vậy với clone đủ repo, lệnh theo cấu trúc đã kiểm tra là:
+git clone https://github.com/RikiyaT/VRisk.gitcd VRiskpython3 -m venv .venvsource .venv/bin/activatepip install -r requirements.txtcd src/realpython run.py beta --drypython run.py beta
+--dry có trong code đã đọc để kiểm tra YAML; đây chưa xác nhận dataset đã được tải đúng. Dataset MovieLens 32M không có trong repo. MMR cần văn bản gốc không được phân phối trong repo; README cho biết fallback similarity theo intent, nên không mặc định tái tạo đúng similarity của paper.
+11. Thiết kế thực nghiệm, baselines, metrics và cấu hình
+Bài đánh giá NTCIR INTENT-2, TREC Web 2012 và MovieLens 32M. MovieLens dùng user là query, genre là intent, chọn user >200 ratings; Table 2 ghi 42.902 users, 71.933 items. Đây là evaluation-only, lấy explicit ratings làm relevance; không huấn luyện recommender và không có một protocol temporal train/validation/test để sao chép nguyên trạng sang BPR.
+Với phim đa thể loại, Eq.16 phân bổ relevance theo p_c sao cho khi lấy kỳ vọng thu lại raw rating. Ví dụ rating=4, genre A/B có xác suất 0,6/0,4, denominator=1 thì conditional relevance hai nhánh đều=4. Nếu phim chỉ thuộc A, conditional relevance=4/0,6 để 0,6×conditional=4; giá trị có thể lớn hơn rating gốc. Vì thế không tự ép conditional relevance vào [0,1] rồi vẫn nói giữ nguyên mô hình.
+Baselines gồm Naive, IW-Greedy, xQuAD, MMR; phụ lục thêm IA-SELECT, FA*IR và calibrated recommendation. Main endpoints là VRisk và average utility, default β=0,10, k=10; bài còn kiểm tra DCG/nDCG/ERR/RBP/Precision. CI lấy query/user làm đơn vị. Hardware latency được ghi MacBook Pro M2, 16 GB, single-thread NumPy/BLAS. Đây là thông số paper, không phải máy đã chạy benchmark trong phiên biên soạn này.
+12. Kết quả, đóng góp và giới hạn
+Hình 8 báo khoảng 7,84 ms/query trên MovieLens với 71.933 candidates/query. Hình 9 có cấu hình MovieLens cho risk/utility khoảng 0,77/0,94 khi Naive=1; đây là normalized metrics, không phải NDCG=0,94. Mức 33% giảm risk với 2% mất utility không được gán chung cho mọi dataset/cấu hình; cần đọc đúng điểm thí nghiệm tương ứng.
+Đóng góp chính là phát biểu tail risk theo intent; làm rõ giới hạn của trung bình intent-weighted; đề xuất greedy thực dụng và phân tích/đánh giá. Nên ghi phần định lý là tuyên bố của bài kèm điều kiện và điểm cần kiểm tra nêu ở Mục 7, không viết lại thành bảo đảm mới đã được tài liệu này chứng minh đầy đủ.
+Tác giả thừa nhận phụ thuộc intent probabilities và giả định intent; việc áp vào nhiều mục đích/đa nhãn phức tạp còn giới hạn. Nhận xét cho đề tài: dữ liệu oracle-like, lọc user nhiều ratings và chưa có exposure toàn hệ thống làm giới hạn khả năng suy sang cold users/e-commerce. Offline risk không trực tiếp đo hài lòng hay công bằng nhà cung cấp.
+13. Ba hướng phát triển có thể kiểm chứng
+A. CVaR nhất quán giữa chọn và đánh giá. Cài một routine weighted CVaR có atom handling dùng chung; ablation exact-tail so với whole-atom tail; đối chiếu solver nhỏ/exhaustive search. Bác bỏ lợi ích nếu hai cách cho cùng thứ hạng/lợi ích trong mọi điều kiện đã xét. Đóng góp mới phải vượt việc sửa một dòng code, có phân tích khi nào sai khác ảnh hưởng quyết định.
+B. Relevance dự báo và user ít lịch sử. Dùng BPR/LightGCN sinh candidates bằng temporal split, ước lượng intent chỉ từ train và shrinkage cho cold users. So VRisker nguyên bản, MMR/SMMR và λ theo history size. Đo held-out NDCG, ILD, CVaR, calibration của intent và runtime. Giả thuyết thất bại nếu lợi ích chỉ có khi dùng oracle ratings.
+C. Thêm exposure toàn batch. Dùng VRisk bảo vệ intent trong user, thêm target exposure item/nhóm và checker tính khả thi. So ElasticRank/PFA và VRisker riêng; ablation từng mục tiêu. Không khẳng định đã kế thừa approximation guarantee sau khi thêm constraint. Ghi rõ target là chính sách và mọi mức vi phạm/slack.
+14. Tự kiểm trước khi viết lại thành luận văn
+Bạn nên tự tính được Eq.6, ví dụ CVaR ở atom và hai bước d1→d3; chỉ đúng file/hàm chọn và đánh giá; giải thích evaluation-only khác BPR temporal; phân biệt bảo vệ intent với provider exposure; và chỉ trích định lý khi đã nêu assumptions. Nếu thiếu một trong các bước này, chưa nên dùng bài như hộp đen để tuyên bố thuật toán mới tốt hơn.
+15. Tài liệu tham khảo quan trọng
+[R1] R. Takehi, F. Diaz, T. Sakai. Diversification as Risk Minimization. WSDM 2026, 618–628. DOI; toàn văn; code.
+[R2] R. T. Rockafellar, S. Uryasev. Optimization of Conditional Value-at-Risk. Journal of Risk, 2000, 21–41. DOI; PDF từ đại học tác giả. Nguồn nền tảng cho công thức CVaR, không phải bài về hệ gợi ý.
+[R3] J. Carbonell, J. Goldstein. The Use of MMR, Diversity-Based Reranking for Reordering Documents and Producing Summaries. SIGIR 1998. DOI.
+[R4] H. Steck. Calibrated Recommendations. RecSys 2018, 154–162. DOI.
+[R5] A. Singh, T. Joachims. Fairness of Exposure in Rankings. KDD 2018, 2219–2228. DOI.
+[R6] K. Liakhnovich và cộng sự. SMMR: Sampling-Based MMR Reranking for Faster, More Diverse, and Balanced Recommendations and Retrieval. SIGIR 2025. DOI.
+[R7] GroupLens Research. MovieLens datasets. Dùng đúng release/README khi tái lập, không thay ML32M bằng ML1M mà không ghi thay đổi.
+Phụ lục A. Danh mục trích dẫn chuẩn hóa
+Các mục dưới đây ghi đủ tên công trình, năm/nơi công bố và link để tra cứu. Gồm bài chính và tài liệu đối chiếu cho luận văn; không khẳng định mọi mục đều nằm trong bibliography của bài gốc. Mã A1, A2… chỉ dùng trong phụ lục của tài liệu này.
+[A1] Rikiya Takehi, Fernando Diaz, Tetsuya Sakai. Diversification as Risk Minimization. ACM WSDM 2026, tr. 618–628. DOI 10.1145/3773966.3777985. Bài/toàn văn; code.
+[A2] Chen Xu, Jujia Zhao, Wenjie Wang, Liang Pang, Jun Xu, Tat-Seng Chua, Maarten de Rijke. Understanding Accuracy-Fairness Trade-offs in Re-ranking through Elasticity in Economics. ACM SIGIR 2025, tr. 539–548. DOI 10.1145/3726302.3730106. Bài/toàn văn; code.
+[A3] Theresia Veronika Rampisela, Tuukka Ruotsalo, Maria Maistro, Christina Lioma. Joint Evaluation of Fairness and Relevance in Recommender Systems with Pareto Frontier. ACM The Web Conference 2025, tr. 1548–1566. DOI 10.1145/3696410.3714589. Bài/toàn văn; code.
+[A4] Steffen Rendle, Christoph Freudenthaler, Zeno Gantner, Lars Schmidt-Thieme. BPR: Bayesian Personalized Ranking from Implicit Feedback. UAI 2009, 460–469. PMLR và PDF.
+[A5] Jaime Carbonell, Jade Goldstein. The Use of MMR, Diversity-Based Reranking for Reordering Documents and Producing Summaries. SIGIR 1998, 335–336. DOI 10.1145/290941.291025.

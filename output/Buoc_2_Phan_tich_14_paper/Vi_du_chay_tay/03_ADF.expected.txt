@@ -1,0 +1,9 @@
+P= [0.6, 0.3, 0.1]
+P_target= [0.52, 0.31, 0.17]
+H(P)=0.817345; H(target)=0.914191
+quotas= [5, 3, 2] length= 10
+Q= [0.5, 0.3, 0.2] H(Q)=0.937231
+score_selected=9.00; score_top10=9.11
+rounding_counterexample K=2: [1, 0, 0] length= 1
+alpha=0.4 beta=0; H_target=0.886020; grid_mix=0.20
+grid_P_target= [0.546667, 0.306667, 0.146667] grid_quotas= [5, 3, 1] length= 9

@@ -1,0 +1,7 @@
+PROVENANCE: main.py, _apply_weighting, read through the web 2026-11-15.
+URL: https://raw.githubusercontent.com/cars1015/IPS-LAE/main/main.py
+This tiny excerpt is not a complete executable module.
+
+return B * w
+
+Editorial explanation: NumPy broadcasts an item-weight vector over the columns of the item-item matrix. The full function also dispatches weighting type and handles the unweighted case. See the official URL for the full licensed implementation.

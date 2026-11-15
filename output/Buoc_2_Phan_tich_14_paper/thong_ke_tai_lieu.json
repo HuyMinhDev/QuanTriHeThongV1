@@ -1,0 +1,114 @@
+[
+  {
+    "id": 1,
+    "file": "01_PFA.docx",
+    "words": 3380,
+    "tables": 1,
+    "bytes": 50006,
+    "headings": 15
+  },
+  {
+    "id": 2,
+    "file": "02_Behind_ReRank.docx",
+    "words": 3462,
+    "tables": 0,
+    "bytes": 49652,
+    "headings": 16
+  },
+  {
+    "id": 3,
+    "file": "03_ADF.docx",
+    "words": 3494,
+    "tables": 0,
+    "bytes": 49651,
+    "headings": 15
+  },
+  {
+    "id": 4,
+    "file": "04_Fairness_Metrics.docx",
+    "words": 3418,
+    "tables": 1,
+    "bytes": 49916,
+    "headings": 14
+  },
+  {
+    "id": 5,
+    "file": "05_VRisker.docx",
+    "words": 3755,
+    "tables": 2,
+    "bytes": 50954,
+    "headings": 17
+  },
+  {
+    "id": 6,
+    "file": "06_CatDive.docx",
+    "words": 3287,
+    "tables": 0,
+    "bytes": 49997,
+    "headings": 16
+  },
+  {
+    "id": 7,
+    "file": "07_IPS_LAE.docx",
+    "words": 3230,
+    "tables": 2,
+    "bytes": 49957,
+    "headings": 14
+  },
+  {
+    "id": 8,
+    "file": "08_LLM_Reranking.docx",
+    "words": 3487,
+    "tables": 0,
+    "bytes": 50161,
+    "headings": 15
+  },
+  {
+    "id": 9,
+    "file": "09_SCRUF_D.docx",
+    "words": 3507,
+    "tables": 1,
+    "bytes": 49811,
+    "headings": 16
+  },
+  {
+    "id": 10,
+    "file": "10_ElasticRank.docx",
+    "words": 3352,
+    "tables": 1,
+    "bytes": 49694,
+    "headings": 16
+  },
+  {
+    "id": 11,
+    "file": "11_SMMR.docx",
+    "words": 3420,
+    "tables": 1,
+    "bytes": 50405,
+    "headings": 17
+  },
+  {
+    "id": 12,
+    "file": "12_FairDiverse.docx",
+    "words": 3233,
+    "tables": 0,
+    "bytes": 49907,
+    "headings": 15
+  },
+  {
+    "id": 13,
+    "file": "13_DPFR.docx",
+    "words": 3263,
+    "tables": 1,
+    "bytes": 50045,
+    "headings": 14
+  },
+  {
+    "id": 14,
+    "file": "14_FairDual.docx",
+    "words": 3699,
+    "tables": 1,
+    "bytes": 50705,
+    "headings": 16
+  }
+]

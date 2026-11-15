@@ -1,0 +1,124 @@
+CSE631  |  ĐỀ TÀI 07  |  BƯỚC 2
+PAPER 11ĐỌC, HIỂU VÀ PHÂN TÍCH
+SMMR: Sampling-Based MMR Reranking for Faster, More Diverse, and Balanced Recommendations and Retrieval
+Kiryl Liakhnovich; Oleg Lashinin; Andrei Babkin; Michael Pechatov; Marina Ananyeva
+ACM SIGIR 2025, short paper, tr. 2754–2758
+DOI: 10.1145/3726302.3730250  |  Bài/toàn văn  |  Code chính thức
+Hướng dẫn tiếng Việt cho người mới bắt đầu
+Từ bài toán, định nghĩa và công thức đến mã giả, ví dụ số, đọc code, thực nghiệm và hướng phát triển luận văn.
+Ngữ cảnh: accuracy–diversity–exposure balanced reranking; điều kiện dự kiến máy 16 GB RAM.
+Phạm vi kiểm chứng
+Đọc tài liệu và mã nguồn truy cập được; chạy các ví dụ giảng giải nhỏ. Chưa huấn luyện lại hoặc tái lập đầy đủ benchmark gốc. Ví dụ tự xây dựng và nhận xét độc lập được ghi nhãn trong nội dung.
+Các tệp mã kèm theo là phần đã đọc/trích xuất qua web; xem SOURCE.md để biết phần thiếu và link repo đầy đủ. Tài liệu không thay thế bài gốc và điều kiện sử dụng dữ liệu/mã nguồn.
+
+1. Nhận diện công trình và phạm vi đọc
+SMMR: Sampling-Based MMR Reranking for Faster, More Diverse, and Balanced Recommendations and Retrieval — Kiryl Liakhnovich, Oleg Lashinin, Andrei Babkin, Michael Pechatov, Marina Ananyeva. SIGIR 2025, short paper, tr. 2754–2758. DOI; toàn văn từ HSE; repo chính thức.
+SMMR mở rộng MMR bằng lấy mẫu theo xác suất và chọn nhiều item trong một vòng. Bài rất phù hợp để học reranking vì không cần huấn luyện lại một mô hình chỉ để thay trọng số diversity. Tuy vậy, sampling tạo độ ngẫu nhiên, không tự tạo bảo đảm accuracy hay exposure fairness.
+Tài liệu này đã đối chiếu Algorithm 1 với production_ready/torch_rerankers.py. Hai phiên bản có một số lựa chọn khác nhau. Vì vậy các phần sau ghi rõ “mã giả paper”, “code production” hay “ví dụ giảng giải”, tránh việc người mới chạy một thứ nhưng giải thích bằng công thức của thứ khác.
+2. Kiến thức nền và lộ trình đọc
+Hãy hình dung backbone BPR đã chấm điểm 10.000 phim cho một user và giữ 1.000 phim tốt nhất. Reranker nhận 1.000 phim này và chọn 10–100 phim cuối. Nó chỉ được chọn trong tập có sẵn; nếu phim tài liệu không có trong 1.000 ứng viên, một công thức diversity rất tốt cũng không thể đưa phim tài liệu vào output.
+Cần hiểu vector embedding là dãy số mô tả item; cosine similarity so hướng hai vector; greedy chọn tốt nhất tại bước hiện tại; softmax chuyển một tập điểm thành xác suất; temperature điều khiển độ tập trung; sampling without replacement chọn không lặp item. Batch ở đây là nhóm item chọn cùng một vòng cho một danh sách, khác batch users khi huấn luyện mô hình.
+Thứ tự đọc nên là §3.1 MMR → §3.2 SMMR/Algorithm 1 → §4/Table 1/Table 2 → code. Đọc Figure 1 để hiểu động cơ về các candidate pools lớn; không xem hình minh họa đó như chứng minh mọi deterministic reranker kém hơn sampling.
+3. Bài toán nghiên cứu và công trình liên quan
+Input gồm tập candidates C, relevance R(i), embedding E_i, số item cần chọn k và ba hyperparameters λ,t,s. Output là danh sách k item phân biệt. Bài muốn cải thiện trade-off relevance–diversity và giảm số vòng chọn khi k lớn.
+MMR [R2] đã giải bài toán giảm dư thừa bằng relevance trừ similarity lớn nhất với item đã chọn. Fast greedy DPP [R3] chọn tập đa dạng qua một kernel và xấp xỉ tối ưu determinant; DPP vốn là mô hình xác suất, nên không được nói “mọi DPP đều deterministic”. Bài SMMR so với implementation greedy MAP cụ thể. SSD [R4] dùng cấu trúc phổ để đa dạng hóa, có chi phí tính toán và các lựa chọn greedy riêng.
+Khoảng trống tác giả hướng tới là độ cứng của việc luôn chọn duy nhất argmax và số vòng tuần tự khi cần danh sách dài. Điều đã có là diversity reranking và greedy approximations; điểm mới là cách kết hợp sampling với batch tăng dần trong bối cảnh thử nghiệm này. Chưa có cơ sở từ bài để kết luận giải được ràng buộc head exposure toàn hệ thống.
+Một chi tiết khoa học quan trọng: deterministic không đồng nghĩa “không đa dạng”; randomness không đồng nghĩa diversity có ích. Một danh sách ngẫu nhiên hoàn toàn có thể kém relevance và vẫn tập trung vào một thể loại. Giá trị nghiên cứu cần thể hiện trên nhiều metric và chi phí ở cùng thiết lập.
+4. Các định nghĩa và ký hiệu bằng ví dụ
+Ký hiệu/khái niệm
+Ý nghĩa
+Ví dụ
+C
+Candidate pool
+100 phim từ BPR, chưa gồm phim đã xem.
+D
+Danh sách/tập đã chọn
+Sau bước đầu D={A}.
+R(i)
+Điểm relevance dùng trong reranking
+0,95 sau biến đổi điểm.
+Sim(i,j)
+Mức giống hai item
+1 nếu cùng hướng embedding; 0 nếu vuông góc.
+λ
+Trọng số relevance trong convention của bài
+λ=1 chỉ relevance; nhỏ hơn làm penalty similarity mạnh hơn.
+t
+Sampling temperature
+t rất nhỏ gần chọn item tốt nhất; t lớn phân bố phẳng hơn.
+s
+Tốc độ tăng batch
+Batch trong mã giả paper có cỡ gần 1,s,s²,…
+ILAD
+Inter-list diversity
+So danh sách của user này với user khác.
+
+Cosine(E_i,E_j)=E_i·E_j/(||E_i||·||E_j||). Với E_A=(1,0), E_B=(2,0), cosine=1 dù độ dài khác; E_C=(0,1) cho cosine(A,C)=0. Một vector bằng 0 làm mẫu số bằng 0, cần xử lý trong implementation. Cosine có thể âm; không mặc định mọi embedding cho similarity trong [0,1].
+Relevance chưa chắc có cùng thang giữa các backbones. Logit 5 và 1 khác xác suất 0,99 và 0,73 sau sigmoid. λ=0,9 trên hai thang có ý nghĩa đánh đổi khác. Trong production code đã đọc, logits được biến đổi bằng sigmoid trước khi tính MMR; cần lưu bước này trong tái lập.
+Intra-list nói về mức khác nhau giữa các item trong một danh sách; inter-list nói về mức khác nhau giữa nhiều danh sách. Table 2 dùng ILAD theo Jaccard giữa danh sách, không phải ILD theo genre trong một danh sách. Tăng ILAD có thể chỉ là hai user nhận các phim khác tên nhưng cùng một genre.
+5. Công thức MMR và softmax: giải thích từng thành phần
+Ở bước hiện tại, score(i)=λR(i)−(1−λ)max_{j∈D}Sim(i,j), với i chưa chọn. Thành phần max phạt mức trùng lặp xấu nhất: chỉ cần giống mạnh một phim đã có, item bị phạt. Nó khác phạt similarity trung bình với toàn danh sách.
+Nếu A đã chọn, R(B)=0,9, similarity(B,A)=1 và λ=0,5 thì score(B)=0,45−0,5=−0,05. Với C có R=0,8 nhưng similarity(C,A)=0, score(C)=0,4. MMR deterministic chọn C. Điểm âm không có nghĩa item không hợp lệ; nó chỉ phản ánh đánh đổi trên thang score.
+SMMR chuyển score thành p(i)=exp(score(i)/t)/Σ_j exp(score(j)/t), t>0. Nếu hai scores là 0,4 và 0,3 với t=0,1 thì tỷ số xác suất là exp(1)≈2,718. Với t=1 thì tỷ số chỉ exp(0,1)≈1,105; item thấp hơn có cơ hội cao hơn tương đối.
+Softmax ổn định số: thay score bằng score−max(score) không đổi xác suất, vì cả tử và mẫu cùng chia exp(max/t). Đây là suy luận đại số dùng để cài đặt, không phải một đóng góp mới của SMMR. Khi t tiến về 0 từ bên dương, mass tập trung vào các item đạt score cực đại; nếu có hòa, giới hạn không tự xác định một tie-break duy nhất.
+Sampling nhiều item without replacement phải cập nhật khả năng chọn item chưa lấy; không dùng nhiều phép chọn độc lập rồi xóa duplicates vì cách đó cho phân bố khác và có thể thiếu k item.
+6. Thuật toán theo mã giả paper
+Algorithm 1 tạo ma trận similarity từ embeddings, khởi tạo D rỗng, vòng n=0. Mỗi vòng tính score cho candidates chưa chọn, biến thành softmax probability, lấy b=min(s^n,k−|D|) item, thêm chúng vào D và tăng n. Để cài đặt cần chọn quy tắc làm tròn batch về số nguyên nếu s không nguyên; paper nêu s=1,5 trong grid nhưng mã giả không mô tả chi tiết làm tròn.
+Khi D rỗng, max similarity chưa được định nghĩa trong toán học. Một lựa chọn cần ghi rõ là penalty=0; production code dùng first-item argmax relevance. Đây là quyết định ảnh hưởng output, không chỉ là cú pháp lập trình.
+Input: candidates C, relevance R, embeddings E, k, lambda, t, sS = pairwise_similarity(E)D = []; round_index = 0while len(D) < k:    for i in C excluding D:        redundancy = 0 if D empty else max(S[i,j] for j in D)        score[i] = lambda*R[i] - (1-lambda)*redundancy    p = stable_softmax(score / t)    b = integer_rule(min(s**round_index, k-len(D)))    B = sample_without_replacement(C excluding D, p, size=b)    append sampled B to D using a stated output-order rule    round_index += 1return D
+Trong một batch, các item dùng cùng trạng thái D trước batch, chưa phạt redundancy giữa các item vừa đồng thời được lấy. Vì vậy batch lớn tiết kiệm vòng nhưng có thể chọn các item giống nhau. Đây là một lý do cần ablation batch size, không chỉ đo tổng thời gian.
+7. Điểm khác trong production code đã đọc
+SampledMMRReranker._rerank đầu tiên sigmoid logits, chuẩn hóa embedding, nhân ma trận để có cosine, rồi chọn item relevance cao nhất một cách quyết định. Sau đó mới sampling. Cỡ batch dùng max(1,min(int(|D|×(scale_factor−1)),N−|D|)), không phải nguyên văn s^n ở Algorithm 1. Cỡ batch có thể vượt số slot còn thiếu; output được cắt về top_k sau vòng.
+Nhánh production kiểm tra scale_factor<=1 và báo lỗi; do đó s=1 trong ablation Bảng 2 không thể chạy trực tiếp bằng class này. Paper nói lấy t=0,s=1 thu về MMR, nhưng code softmax chia cho temperature và chấp nhận t=0 ở validation; t=0 có nguy cơ NaN/invalid probabilities. Muốn tái lập MMR, dùng implementation MMR riêng hoặc nhánh giới hạn argmax được ghi rõ, không gọi t=0 rồi coi đó là benchmark hợp lệ.
+Các khác biệt trên là quan sát tĩnh tại tệp/nhánh đã đọc, chưa phải lỗi thực nghiệm được chạy lại trên data paper. Người tái lập cần pin commit và xác định nhánh paper_reproducibility hay production_ready, vì một wrapper có thể thay đổi validation hoặc cách truyền tham số.
+Đừng sửa code gốc rồi gọi kết quả là tái lập nguyên trạng. Nên giữ một bản gốc và một bản fix riêng, ghi diff và so cả hai ở các ca nhỏ: D rỗng, t=0, s=1, zero embedding, k=N và batch vượt số slot cuối.
+8. Ví dụ số chạy từng bước
+Paper có Algorithm 1 và bảng kết quả benchmark, nhưng không cung cấp một ma trận candidates nhỏ đầy đủ để chạy tay từng phép sampling. Vì vậy ví dụ dưới đây do tài liệu hướng dẫn tự xây dựng, không gán cho tác giả. Nó dùng cùng công thức score/softmax và batch một item để tách ảnh hưởng randomness.
+Có A/B cùng thể loại, C/D cùng thể loại khác; similarity cùng thể loại=1, khác=0. Relevance sau biến đổi là A=0,95, B=0,90, C=0,80, D=0,70. Chọn k=3, λ=0,5,t=0,1. Bước đầu chọn A theo quy tắc production.
+Bước 2: B,C,D có score lần lượt −0,05;0,40;0,35. Trừ max 0,40 và chia t cho các số mũ −4,5;0;−0,5. Sau exp/chuẩn hóa, xác suất ≈0,006867;0,618185;0,374948. MMR sẽ chọn C. Để minh họa SMMR, dùng số uniform định sẵn 0,9: CDF là 0,006867;0,625052;1, nên chọn D.
+Bước 3: D={A,D}, B giống A và C giống D. Score B=0,5×0,9−0,5=−0,05; C=0,5×0,8−0,5=−0,10. Xác suất B≈0,622459, C≈0,377541. Uniform 0,2 chọn B. Output A,D,B; average relevance=(0,95+0,70+0,90)/3=0,85.
+Với greedy MMR và cùng tie rules, output A,C,B, relevance trung bình≈0,8833. Ví dụ này cố ý cho thấy sampling có thể giảm relevance. Không thể suy một lượt lấy mẫu là bằng chứng lợi ích. Cần chạy nhiều seeds và so kỳ vọng/trade-off.
+Ví dụ batch độc lập: với k=20,s=2 theo mã giả paper, batch có thể là 1,2,4,8,5. Tổng 20 qua 5 vòng. Ở mỗi batch, phải lưu danh sách item và thứ tự sampling; một “set” không có thứ tự không đủ để đánh giá rank-aware metrics.
+Tệp Vi_du_chay_tay/11_SMMR.py thực hiện các xác suất/CDF trên bằng thư viện chuẩn. Uniforms cố định là công cụ giải thích, không phải seed được paper sử dụng. Không coi toy này là toàn bộ thuật toán production với batch tăng dần.
+9. Tính chất, chứng minh ngắn và độ phức tạp
+Không lặp item: nếu mask mọi item đã chọn và sampling without replacement trong batch, phép quy nạp cho thấy D sau mỗi vòng vẫn không lặp. Nếu còn đủ candidates và b≤số slot còn thiếu, vòng tăng |D| đến k. Production cho phép oversampling cuối rồi truncate, nên chứng minh kích thước output phải nhắc bước cắt cuối.
+Số vòng tăng batch: với batches 1,s,…,s^(r−1), tổng là (s^r−1)/(s−1). Điều kiện đủ r≥log_s(1+(s−1)k) khi s>1. Với cách làm tròn, cần xét thêm sai số. Đây là giải thích O(log k) của số vòng, không phải toàn bộ runtime O(log k). Công thức ceil(log_s k) chỉ là mô tả gần/asymptotic, không đúng nguyên xi cho mọi k,s và mọi quy tắc khởi tạo.
+Chi phí thực: dựng similarity dense N×N tốn O(N²d) phép toán và O(N²) bộ nhớ cho embedding dimension d. Float32 với N=1.000 tốn khoảng 4 MB mỗi ma trận; N=10.000 tốn khoảng 400 MB, trước khi nhân batch users và tạo intermediate tensors. Khi N rất lớn, đây là nút thắt dù số vòng ít.
+Có thể duy trì maximum similarity với D incremental để giảm tính lại, nhưng sửa kiểu này cần bảo toàn chính xác semantics của batch. Paper là heuristic/đánh giá thực nghiệm, không đưa ra bảo đảm rằng expected NDCG hoặc fairness tăng trong mọi phân bố candidates. Không tự bổ sung định lý chất lượng từ việc softmax có tổng xác suất bằng 1.
+10. Mã nguồn, ngôn ngữ và các bước chạy có thể kiểm tra
+Repo có paper_reproducibility và production_ready; README hiện hành đề nghị Python 3.11. Các phần chính dùng PyTorch/NumPy; backbones được chạy qua pipeline recommendation của repo/RecBole. Tệp đã lấy qua web Ma_nguon/11_SMMR/torch_rerankers.py chứa base Reranker, NoRerank, SampledMMRReranker; đây không phải toàn bộ dependencies/repo.
+Trong Reranker.rerank, topk cắt pool trước, đồng thời map local indices sang label_ids. Nếu nhầm local index với item-ID catalog, code vẫn có thể chạy nhưng trả sai item; hãy kiểm tra bằng toy có IDs không liên tiếp. _rerank cần item_embeddings để lấy vector đúng item-ID. Shape input logits là batch_size×num_candidates; embeddings là num_all_unique_items×embedding_size.
+Lệnh từ README để tái lập, cần chạy trong clone đầy đủ và mạng có thể tải dependencies/dataset:
+git clone https://github.com/kliakhnovich/smmr.gitcd smmr/paper_reproducibilitypython3.11 -m venv smmr_rep_envsource smmr_rep_env/bin/activatepip install -r requirements.txtPYTHONPATH=. torchrun --nproc_per_node=1 src/cli/run_model_on_dataset.py \  --dataset_name ml-100k --model_name BPR \  --results_save_dir training_results --top_k_scores_cutoff 3000PYTHONPATH=. python src/cli/run_reranking_experiments.py \  --dataset_name ml-100k --model_name BPR \  --scores_folder training_results --reranking_results_dir reranking_results \  --candidates_top_k 1000 --rank_top_k 200
+Đây là lệnh tham khảo đã đối chiếu README, chưa được chạy benchmark trong phiên này. Nếu máy chỉ có CPU, kiểm tra cấu hình device/distributed launcher của repo thay vì hứa lệnh torchrun mặc định chạy trên mọi máy. Chạy toy trước khi huấn luyện trên MovieLens10M; ML100K là smoke test chứ không tái lập dataset chính.
+11. Thực nghiệm gốc: dữ liệu, phần cứng, baselines và metrics
+Bài dùng MovieLens10M, Dunnhumby và MIND; candidates top-1.000 từ BPR, LightGCN, SASRec. Chia timestamp 80/20 train/test; nguồn đã đọc chưa mô tả đủ một validation protocol riêng. Grid Table 1 gồm λ=0,9/0,95/0,99, temperature=0,001/0,005/0,01/0,03/0,05 và scale=1,5/2/4; backbones dùng RecBole defaults.
+So với no-rerank, MMR, greedy MAP DPP và SSD. Đánh giá Recall, ItemCoverage, ILAD và runtime. Với Recall, cần thống nhất mẫu số số positive test; coverage lấy union items trên users; ILAD tính theo Jaccard giữa danh sách users. Không dùng NDCG@10 của luận văn để so số trực tiếp với Recall@100 của bảng gốc.
+Paper không cho một cấu hình phần cứng đầy đủ đủ để tôi xác minh CPU/GPU/RAM/OS của mọi phép đo. Vì vậy không tự điền RTX 3090 hay 16 GB. Môi trường luận văn phải tự ghi hardware/device/threads, số users đo latency và peak RAM; đây là cấu hình tái lập mới.
+12. Kết quả và cách kết luận đúng phạm vi
+Table 2, MIND+BPR@100, λ=0,9: MMR Recall=0,11, coverage=0,37, ILAD=0,89; SMMR temperature=0,01,batch size=1 có Recall=0,11, coverage=0,400, ILAD=0,92. Điểm so sánh này cho thêm coverage/inter-list diversity với cùng Recall làm tròn.
+Ở λ=0,95, MMR Recall=0,15 còn SMMR=0,13; ILAD và coverage tốt hơn nhưng relevance giảm. Không ghi “sampling không làm giảm accuracy”. Figure 2 cho trade-off, Figures 3–5 phân tích scale/runtime; cần so các điểm Pareto và tuning budget, không chọn điểm SMMR đẹp nhất rồi để baseline ở default kém.
+Đóng góp là sampling-based extension, batch tăng dần và bằng chứng trade-off/scalability trong các thiết lập đã xét. Bài chưa cung cấp constraint exposure trên item/nhóm và chưa có user study chứng minh thỏa mãn người dùng hoặc doanh thu tăng.
+13. Hạn chế và ba hướng phát triển có thể bác bỏ
+Hạn chế phương pháp: randomness có thể chọn item kém; batch lớn chưa xét tương đồng nội bộ; similarity từ backbone có thể mang bias; ma trận dense làm giới hạn scale. Hạn chế bằng chứng: split/tuning/seed/hardware cần làm rõ hơn để tái lập chặt; code production khác pseudocode ở các điểm đã nêu. Đây là nhận xét của tài liệu hướng dẫn, không gán thành nguyên văn limitations của tác giả.
+Hướng A — Exposure-aware SMMR. Thêm penalty/constraint theo position-weighted exposure toàn batch, so SMMR nguyên bản và ElasticRank/PFA, cùng candidate pool. Ablation sampling, batching, exposure; đo constraint violations và cold-user NDCG. Bác bỏ giả thuyết nếu hiệu quả chỉ đến từ thay candidate pool hoặc tuning nhiều hơn.
+Hướng B — Batch có kiểm soát redundancy nội bộ. Sau khi lấy batch, kiểm tra item quá giống nhau rồi repair hoặc lấy tuần tự trong batch. So cùng latency budget và nhiều k; đo ILD lẫn ILAD. Nếu repair tốn thời gian ngang MMR mà không có gain tin cậy, hướng này chưa có giá trị thực dụng.
+Hướng C — Giảm bộ nhớ similarity. Tính cosine theo block hoặc giữ incremental max thay dense N²; kiểm tra output với bản tham chiếu trên cùng random draws, đo RAM/runtime khi tăng M. Chỉ thay data structure chưa tự là paper mới; cần một phát hiện/giới hạn thuật toán hoặc trade-off có ý nghĩa.
+14. Bài tập tự kiểm cho người mới
+Tự tính lại softmax của B/C/D; thay λ từ 0,5 thành 0,9 và giải thích đổi lựa chọn; tăng t rồi xem phân bố có phẳng hơn; chỉ ra vì sao cùng seed chưa chắc cùng kết quả giữa NumPy/PyTorch và các thiết bị; kiểm tra IDs và masks; đọc code để phân biệt production với reproduction. Sau đó mới chạy một baseline BPR và vẽ Recall–coverage–latency.
+15. Tài liệu tham khảo có thật và đáng đọc
+[R1] K. Liakhnovich, O. Lashinin, A. Babkin, M. Pechatov, M. Ananyeva. SMMR: Sampling-Based MMR Reranking for Faster, More Diverse, and Balanced Recommendations and Retrieval. SIGIR 2025, 2754–2758. DOI; repo.
+[R2] J. Carbonell, J. Goldstein. The Use of MMR, Diversity-Based Reranking for Reordering Documents and Producing Summaries. SIGIR 1998. DOI.
+[R3] L. Chen, G. Zhang, H. Zhou. Improving the Diversity of Top-N Recommendation via Determinantal Point Process. 2017. arXiv:1709.05135. Dùng đúng bản được SMMR viện dẫn, không tự gán năm/venue bản khác.
+[R4] Y. Huang, W. Wang, L. Zhang, R. Xu. Sliding Spectrum Decomposition for Diversified Recommendation. KDD 2021, 3041–3049. Nguồn bibliographic trong paper SMMR. Chưa gán DOI riêng khi chưa đối chiếu.
+[R5] S. Rendle, C. Freudenthaler, Z. Gantner, L. Schmidt-Thieme. BPR: Bayesian Personalized Ranking from Implicit Feedback. UAI 2009. Toàn văn và metadata.
+[R6] X. He và cộng sự. LightGCN: Simplifying and Powering Graph Convolution Network for Recommendation. SIGIR 2020. DOI.
+[R7] W.-C. Kang, J. McAuley. Self-Attentive Sequential Recommendation. 2018. arXiv:1808.09781.
+[R8] W. X. Zhao và cộng sự. RecBole: Towards a Unified, Comprehensive and Efficient Framework for Recommendation Algorithms. CIKM 2021. DOI; repo.
+Phụ lục A. Danh mục trích dẫn chuẩn hóa
+Các mục dưới đây ghi đủ tên công trình, năm/nơi công bố và link để tra cứu. Gồm bài chính và tài liệu đối chiếu cho luận văn; không khẳng định mọi mục đều nằm trong bibliography của bài gốc. Mã A1, A2… chỉ dùng trong phụ lục của tài liệu này.
+[A1] Kiryl Liakhnovich, Oleg Lashinin, Andrei Babkin, Michael Pechatov, Marina Ananyeva. SMMR: Sampling-Based MMR Reranking for Faster, More Diverse, and Balanced Recommendations and Retrieval. ACM SIGIR 2025, short paper, tr. 2754–2758. DOI 10.1145/3726302.3730250. Bài/toàn văn; code.
+[A2] Steffen Rendle, Christoph Freudenthaler, Zeno Gantner, Lars Schmidt-Thieme. BPR: Bayesian Personalized Ranking from Implicit Feedback. UAI 2009, 460–469. PMLR và PDF.
+[A3] Xiangnan He, Kuan Deng, Xiang Wang, Yan Li, Yongdong Zhang, Meng Wang. LightGCN: Simplifying and Powering Graph Convolution Network for Recommendation. SIGIR 2020, 639–648. DOI 10.1145/3397271.3401063.
+[A4] Wayne Xin Zhao và cộng sự. RecBole: Towards a Unified, Comprehensive and Efficient Framework for Recommendation Algorithms. CIKM 2021. DOI 10.1145/3459637.3482016; code.
+[A5] Jaime Carbonell, Jade Goldstein. The Use of MMR, Diversity-Based Reranking for Reordering Documents and Producing Summaries. SIGIR 1998, 335–336. DOI 10.1145/290941.291025.

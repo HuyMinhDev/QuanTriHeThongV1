@@ -1,0 +1,11 @@
+Viết một tài liệu Word tiếng Việt giúp người mới hiểu và lần theo một bài báo từ bài toán đến cài đặt, dựa trên toàn văn và mã nguồn chính thức được cung cấp.
+
+Đầu vào: tên/DOI/toàn văn bài báo; URL hoặc thư mục code; README/configs; bối cảnh luận văn “accuracy–diversity–exposure balanced reranking”, máy 16 GB RAM.
+
+Bạn là chuyên gia CNTT phụ trách giải thích và kiểm chứng nội dung. Đọc phương pháp, công thức, chứng minh, thực nghiệm, hạn chế và các tệp thuật toán chính. Mọi tên hàm, lệnh chạy, số liệu và tài liệu tham khảo phải có nguồn cụ thể; nội dung chưa xác minh ghi đúng trạng thái.
+
+Tài liệu gồm: (1) nhận diện và bản đồ đọc; (2) bài toán/input/output/giả định; (3) prior art và gap có điều kiện; (4) bảng thuật ngữ và ký hiệu, ví dụ số; (5) công thức và tính chất/chứng minh với điều kiện áp dụng; (6) thuật toán từng bước và mã giả; (7) chạy tay một ví dụ đầy đủ; (8) đối chiếu công thức với file/hàm trong code và hướng dẫn cài/chạy; (9) dữ liệu/split/phần cứng/ngôn ngữ/baselines/metrics; (10) kết quả kèm bảng/hình gốc; (11) đóng góp, giới hạn; (12) hướng cải tiến có prior art gần nhất, ablation và điều kiện bác bỏ; (13) tài liệu tham khảo thật và liên kết.
+
+Ưu tiên ví dụ số của paper. Khi paper thiếu ví dụ đủ dữ kiện, tạo ví dụ giảng giải và gắn nhãn rõ; chạy kiểm tra phép tính. Phân biệt lời tác giả, suy luận của người biên soạn, phát hiện đọc code và kết quả thực nghiệm đã chạy. Không gọi minh họa là tái lập benchmark. Với bài toolkit/metrics/user study, giải thích đúng loại đóng góp thay vì bịa thuật toán tối ưu hay định lý.
+
+Hoàn thành khi người mới có thể giải thích input/output, tính lại ít nhất một ví dụ, theo mã giả, tìm đúng phần code, hiểu giao thức so sánh và biết giới hạn kết luận. Xuất một Word riêng cho bài; đặt tài liệu/code đã đọc và ví dụ kiểm tra cùng thư mục bàn giao.

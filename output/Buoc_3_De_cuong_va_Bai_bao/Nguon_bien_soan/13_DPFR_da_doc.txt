@@ -1,0 +1,104 @@
+CSE631  |  ĐỀ TÀI 07  |  BƯỚC 2
+PAPER 13ĐỌC, HIỂU VÀ PHÂN TÍCH
+Joint Evaluation of Fairness and Relevance in Recommender Systems with Pareto Frontier
+Theresia Veronika Rampisela; Tuukka Ruotsalo; Maria Maistro; Christina Lioma
+ACM The Web Conference 2025, tr. 1548–1566
+DOI: 10.1145/3696410.3714589  |  Bài/toàn văn  |  Code chính thức
+Hướng dẫn tiếng Việt cho người mới bắt đầu
+Từ bài toán, định nghĩa và công thức đến mã giả, ví dụ số, đọc code, thực nghiệm và hướng phát triển luận văn.
+Ngữ cảnh: accuracy–diversity–exposure balanced reranking; điều kiện dự kiến máy 16 GB RAM.
+Phạm vi kiểm chứng
+Đọc tài liệu và mã nguồn truy cập được; chạy các ví dụ giảng giải nhỏ. Chưa huấn luyện lại hoặc tái lập đầy đủ benchmark gốc. Ví dụ tự xây dựng và nhận xét độc lập được ghi nhãn trong nội dung.
+Các tệp mã kèm theo là phần đã đọc/trích xuất qua web; xem SOURCE.md để biết phần thiếu và link repo đầy đủ. Tài liệu không thay thế bài gốc và điều kiện sử dụng dữ liệu/mã nguồn.
+
+1. Nhận diện bài, phiên bản và loại đóng góp
+Joint Evaluation of Fairness and Relevance in Recommender Systems with Pareto Frontier, Theresia Veronika Rampisela, Tuukka Ruotsalo, Maria Maistro, Christina Lioma; WWW2025,1548–1566; DOI 10.1145/3696410.3714589. Toàn văn, PDF, repo chính thức.
+DPFR dùng một điểm tham chiếu trên frontier relevance–fairness để đánh giá mô hình. Oracle2Fair tạo đường tham chiếu từ nhãn evaluation; DPFR không phải reranker triển khai cho user mới. Bài thử4 recommenders,3 rerankers,6 datasets; K10 và rerank top25. Bảng3, ML20M: dựng đường đầy đủ 75,77 phút; xấp xỉ12 điểm 2,60 phút, Kendall τ tối thiểu 0,97 trong đối chiếu của bài. Nguồn công trình.
+Tháng10/2026 có bản mở rộng Robustness Analysis of Pareto-based Joint Evaluation…, tác giả thông báo accepted ACM TORS. Tài liệu này giải thích bản WWW2025, nhận diện bản mới để người học đọc tiếp; không đếm hai phiên bản như hai ý tưởng độc lập và không tự gán DOI publisher cho bản mở rộng.
+Các ví dụ hình học, chứng minh ngắn và enumeration dưới đây là bài giảng độc lập, trừ tọa độ Hình1 được ghi rõ nguồn. Đã đọc paper và các file mã chính qua web; chưa chạy lại Oracle2Fair trên dataset thật.
+2. Người mới cần biết gì và nên đọc theo thứ tự nào?
+Trước tiên cần phân biệt tối ưu hệ gợi ý với đánh giá hệ gợi ý. Một thuật toán triển khai chỉ biết lịch sử trước thời điểm phục vụ và phải đoán relevance. Một evaluator được phép dùng nhãn kiểm thử để chấm dự đoán đã cố định. Oracle biết nhãn thật là công cụ đánh giá; đem oracle vào policy đang chọn tham số làm mất tính độc lập của test.
+Thứ hai là đa mục tiêu. Giả sử mô hình A đạt accuracy cao, B có exposure đều hơn. Không có quy tắc số học tự nhiên bắt buộc phải chọn A hay B nếu chưa xác định sở thích đánh đổi. Một frontier giúp mô tả những lựa chọn không bị lựa chọn khác vượt đồng thời, còn tham số α thể hiện điểm ưu tiên trên đường đó.
+Thứ ba là hình học cơ bản: khoảng cách hai điểm trong mặt phẳng và độ dài đường gấp khúc. Không cần giải tích cao cấp để hiểu DPFR. Khi gặp từ “Pareto”, hãy hỏi tập phương án khả thi là gì, trục nào lớn hơn tốt hơn và nhãn nào dùng để dựng đường.
+Lộ trình đọc: Hình1 để thấy động cơ; §3.1 để học dominance; §3.2 và phụ lụcB để hiểu oracle; §3.3 để hiểu reference point; §3.4 để hiểu approximation. Cuối cùng đọc §4–5 và notebook tính khoảng cách. Đừng chỉ đọc abstract rồi diễn giải DPFR là “khoảng cách ngắn nhất đến bất kỳ điểm nào trên frontier”; cách hiểu đó bỏ mất điểm tham chiếu theo α.
+3. Bài toán: input, output và universe được phép
+Input gồm ranking của các recommenders cần chấm, nhãn relevance test cho users, lịch sử train/validation để loại item đã tương tác, catalog, K, một metric relevance, một metric fairness và α. Đầu ra gồm frontier tham chiếu được dựng, một điểm tham chiếu và khoảng cách của từng mô hình tới điểm đó.
+Phải xác định universe trước. Nếu reference được phép lấy mọi item hợp lệ nhưng mô hình chỉ nhận top100 candidates, khoảng cách chứa cả retrieval bottleneck. Điều đó có thể hữu ích khi đánh giá end-to-end, nhưng không tách được chất lượng riêng của reranker. Nếu muốn so cơ chế rerank, cần thêm reference giới hạn cùng pool. Hai reference trả lời hai câu hỏi khác nhau.
+Trong cách dùng của bài, relevance thường là macro-average qua users; fairness item tổng hợp exposure trên toàn bộ users. Một điểm trên mặt phẳng vì thế đại diện cho cả một bộ danh sách, không phải chỉ một user. Không được lấy một metric fairness per-user tùy ý để thay mà giữ nguyên cách diễn giải toàn hệ thống.
+Không coi mọi điểm trong hình vuông[0,1]² đều khả thi. Khi users cùng thích một item, đạt accuracy tối đa có thể buộc exposure tập trung. Điểm(1,1) là mong ước ở nhiều bài toán, không phải chắc chắn có bộ ranking nào đạt được. Đây là lý do cần tham chiếu theo dữ liệu.
+4. Prior art đã làm gì và bài thay đổi góc nhìn nào?
+Pareto optimization đã được dùng để chọn recommendations và tìm đánh đổi nhiều mục tiêu trước DPFR. Các metrics exposure/relevance-aware cũng đã có; bài không phát minh NDCG hay Gini. Điểm riêng cần học là dùng một reference dựa nhãn evaluation và dữ liệu khả đạt để đánh giá, thay vì chỉ lấy frontier của vài mô hình đã train làm chuẩn.
+Nếu tập mô hình rất yếu, frontier từ kết quả của chính chúng cũng yếu. Một phương pháp đứng trên frontier ấy chỉ nói nó không bị các đối thủ đã đưa vào vượt, chưa nói gần tốt nhất khả đạt. Ngược lại, dùng utopia point(1,1) có thể trừng phạt tất cả vì một mâu thuẫn cấu trúc dữ liệu không thuật toán nào khắc phục.
+Gap cho luận văn có điều kiện gồm candidate constraints, thêm diversity và độ ổn định trước nhãn thiếu/drift. Tuy nhiên bản mở rộng2026 đã xét robustness sâu hơn; trước khi tuyên bố mới phải đọc các analysis của bản đó. Chỉ thêm một trục và gọi “DPFR3D” không tự tạo một metric đã được chứng minh có ý nghĩa.
+5. Ký hiệu, dominance và phép chọn điểm tham chiếu
+Ký hiệu
+Ý nghĩa
+R(Π)
+Relevance của bộ rankings Π
+F(Π)
+Fairness; thống nhất orientation trước khi so
+x=(R,F)
+Một điểm kết quả
+P={p₁,…,p_T}
+Các điểm frontier tham chiếu
+d_E(a,b)
+Khoảng cách Euclid
+α∈[0,1]
+Vị trí ưu tiên dọc frontier
+s_α
+Điểm tham chiếu được chọn
+m,n,K
+Số users, items, slots mỗi user
+
+Để giảng dễ, cho cả R và F đều lớn hơn tốt hơn. Với Gini nhỏ hơn tốt hơn, có thể minh họa bằng F=1−Gini; khi tính thật phải giữ conversion nhất quán cho cả models lẫn reference.
+a dominates b nếu R_a≥R_b, F_a≥F_b và có ít nhất một bất đẳng thức nghiêm. Điểm Pareto trong một tập phương án là điểm không bị phương án khác trong tập ấy dominate. Từ “trong tập ấy” rất quan trọng: Pareto của9 phương án toy khác Pareto của toàn bộ hệ thống hàng triệu users.
+Viết lại hình học ở §3.3: đặt p_t theo hướng từ relevance tốt nhất sang fairness tốt nhất. Độ dài đoạn ℓ_t=||p_{t+1}−p_t||₂, tổng L=Σℓ_t, cumulative C_j=Σ_{t<j}ℓ_t. Chọn một điểm đã sinh có C_j gần αL; DPFR(x)=||x−s_α||₂. Đây là diễn giải toán học của cách dùng arc length; implementation có tie/endpoint convention cần kiểm tra riêng. Đối chiếu §3.3.
+α=0 hướng về đầu relevance, α=1 hướng về đầu fairness. α=0,5 là nửa chiều dài đường, không nhất thiết điểm thứT/2. Nếu frontier có nhiều điểm dồn ở một vùng, lấy trung vị index sẽ thiên về vùng dày. Cũng không hiểu α là trọng số trực tiếp trong một tổng αF+(1−α)R; hai cơ chế chọn điểm khác nhau.
+Thang đo vẫn tác động hình học. Nhân một trục với100 làm khoảng cách theo trục ấy quan trọng hơn. Việc cùng nằm[0,1] không có nghĩa hai metric đã được hiệu chuẩn theo giá trị ứng dụng. Cần công bố metric pair và normalization, và kiểm tra conclusions khi đổi một phép biến đổi hợp lý.
+6. Oracle2Fair, lập luận đúng phạm vi và giới hạn bảo đảm
+Tóm tắt logic đã đọc: bắt đầu bằng ranking tối đa relevance theo nhãn test, ưu tiên lựa chọn item ít exposure khi có nhiều cách vẫn giữ relevance. Sau đó thay item xuất hiện nhiều bằng item chưa/ít xuất hiện, ưu tiên các user mà replacement vẫn relevant và các vị trí làm mất relevance ít hơn. Sau replacement, đưa relevant items về đầu để bảo vệ top-weighted relevance. Đo nhiều metric dọc đường và giữ phía tốt hơn khi relevance trùng. Phụ lụcB và code mới có đầy đủ tie/eligibility handling.
+Mã giả này là khái quát giảng dạy, không thay implementation chính thức:
+Tạo oracle rankings từ test labels, loại train/validation itemsĐếm exposure hiện tại và đo điểm đầuTrong khi còn bước cân bằng hợp lệ:    Chọn item overexposed và replacement underexposed    Tìm user/slot hợp lệ, ưu tiên giữ relevance    Thay item; sắp relevant items về đầu; cập nhật counts    Đo relevance/fairness và lưu rankings/trạng tháiLọc điểm trùng hoặc bị dominate trong đường đã sinhChọn reference theo α và tính khoảng cách của mô hình
+Một bound dễ chứng minh là tối thiểu của maximum item count không thể thấp hơn ceil(mK/n): mK slot chia cho n item, nếu mọi item có ít hơn ceil(mK/n) lần thì không đủ chứa tất cả slot. Đây là nguyên lý chuồng bồ câu. Nó chỉ là lower bound không xét restrictions; train-history masks hoặc candidates có thể làm mục tiêu đó không đạt được.
+Một lập luận khác là chuyển một lượt từ item rất nhiều exposure sang item ít exposure thường giảm bất bình đẳng. Với counts2 và0, đổi thành1 và1 làm chênh lệch cặp từ2 xuống0; các độ lệch với item khác không tăng theo phép cân bằng Robin Hood dưới điều kiện tương ứng. Nhưng giảm Gini không tự chứng minh điểm mới là Pareto toàn cục.
+Cảnh giác suy luận, do người biên soạn bổ sung: đi từ(0,9;0,2) sang(0,8;0,4) tạo đánh đổi, nhưng có thể còn một phương án(0,85;0,5) dominate điểm sau. Một đường tăng fairness/giảm relevance không đủ là chứng minh global Pareto. Bản bài gốc ở cuối §3.2 cũng nói không thể hợp lý kiểm chứng đường sinh trùng theoretical frontier. Vì vậy nên gọi là frontier tham chiếu/empirical đường sinh khi chưa có exact proof cho bài toán mới; không biến Oracle2Fair thành chứng nhận tối ưu mọi constraint.
+7. Ví dụ gốc Hình1: vì sao trung bình hai metric có thể chọn khác?
+Phần này dùng tọa độ minh họa Hình1 của paper, không phải kết quả dataset. Reference được làm tròn thành(0,766;0,766); ba models A=(0,2;0,9), B=(0,65;0,2), C=(0,5;0,5). Mục đích là hiểu phép đo, không chứng minh mọi phép trung bình đều vô giá trị.
+Trung bình R,F của A là(0,2+0,9)/2=0,55; B0,425; C0,5. Nếu chọn trung bình lớn nhất thì A đứng đầu. Khoảng cách tới reference của A là sqrt[(0,2−0,766)²+(0,9−0,766)²]=sqrt(0,320356+0,017956)≈0,581646.
+B có khoảng cách sqrt[(−0,116)²+(−0,566)²]=sqrt(0,013456+0,320356)≈0,577765. C có khoảng cách sqrt[2×(−0,266)²]≈0,376181. Với reference này, C gần nhất. Sự khác nhau phản ánh hai quy tắc ưu tiên khác nhau; DPFR làm điểm cân bằng tham chiếu hiện rõ thay vì giấu trong một trung bình.
+Các số khoảng cách paper làm tròn0,582/0,578/0,376. Dùng tọa độ đã làm tròn để tính lại sẽ có sai số nhỏ, không phải sai lệch tái lập. Nếu đổi α, reference có thể đổi và thứ hạng cũng có thể đổi; phải công bố α trước khi diễn giải kết quả.
+8. Toy nguyên bản: tìm frontier thật bằng liệt kê9 phương án
+Ví dụ tự xây dựng, hai users, ba item A,B,C, K=1; cả hai chỉ relevant A. Mọi user đều được chọn bất kỳ item, không có history masks. Có3²=9 phương án. R là trung bình số hit; F=1−Gini với counts exposure trên cả ba item, attention1.
+Phương án(A,A) có R=1 và counts(2,0,0). Tổng sai khác có thứ tự là8; mẫu số2×3×2=12, Gini=2/3 nên F=1/3. Phương án(A,B) có R=1/2, counts(1,1,0), tổng sai khác4, Gini=1/3, F=2/3. Các phương án(A,C),(B,A),(C,A) cùng điểm.
+(B,C) và(C,B) không hit, R=0 nhưng F=2/3. Chúng bị điểm(1/2,2/3) dominate vì fairness bằng nhau còn relevance thấp hơn. (B,B),(C,C) có R=0,F=1/3 và cũng bị dominate. Frontier thật của toy là hai điểm(1,1/3) và(1/2,2/3).
+Vì đã liệt kê toàn bộ9 phương án, có thể gọi kết quả này exact cho toy đã định nghĩa. Nếu thêm constraint user2 không được chọnA, tập phương án thay và frontier phải tính lại. Không được giữ nguyên đường cũ rồi kết luận user2 bị thuật toán đối xử kém.
+Vi_du_chay_tay/13_DPFR.py tính khoảng cách Hình1 và enumeration này. Chạy:
+python3 Vi_du_chay_tay/13_DPFR.py
+Output đã kiểm tra có C distance0,376181; hai frontier points relevance1/fairness0,333333 và relevance0,5/fairness0,666667; all_assignments=9; exact_frontier_for_toy_only=True. Script không hiện thực Oracle2Fair hoặc benchmark WWW; nó xác minh khái niệm bằng một universe đủ nhỏ để kiểm tra toàn bộ.
+9. Đọc mã nguồn và tái lập từng tầng
+README chỉ các tầng: notebooks preproc_data, tuning scripts/hyperchoice, reranking/rerank_subset.py, eval/base_eval.py, pareto/generate_pareto.py, pareto/estimate_pareto.py, notebook experiments/02_pareto_pair_plot.ipynb. Đó là workflow nhiều artifact, không phải một lệnh độc lập từ raw data tới mọi bảng.
+Trong generate_pareto.py, các điểm đọc chính là load_dataset, init_recommendation, get_frequency_count, update_df_test_with_item, oracle2fair, update_all_measure. Dữ liệu được nạp từ pickles train/valid/test; metric classes dùng fork RecBole. K được đặt10 trong nguồn đọc được. Không thay K bằng20 mà giữ nguyên filenames/artifact rồi coi là tái lập cấu hình gốc.
+estimate_pareto.py có argument --numpoint; mô tả argument nói số điểm mong muốn không tính endpoints. Cần kiểm tra số điểm thực lưu khi đối chiếu “12 điểm” trong bảng, thay vì suy --numpoint 12 chắc chắn tái tạo cùng12 điểm.
+Notebook chứa placeholder chọn file kết quả mới nhất và code gom model scores/frontier. Phải điền artifact đúng trước khi chạy. Một notebook có output cũ không chứng minh dữ liệu vừa được chạy lại. Bản notebook hiện đọc còn dùng APIs pandas cần đối chiếu môi trường; không tự coi môi trường mới nhất là tương thích fork cũ.
+Ngôn ngữ là Python; nguồn có NumPy/pandas/PyTorch/RecBole, notebook có matplotlib/seaborn. Package lock đầy đủ và môi trường cài thành công chưa được xác minh. Ma_nguon/13_DPFR chứa trích đoạn và bản đồ nguồn, chưa là clone đầy đủ; không thể thực thi đầy đủ chỉ từ thư mục đó.
+10. Dữ liệu, splits, baselines và ý nghĩa bảng kết quả
+Sáu datasets là Lastfm, Amazon-lb, QK-video, Jester, ML10M, ML20M. Amazon/MovieLens dùng global temporal60/20/20; bộ không timestamps dùng random cùng tỷ lệ. Bài lọc interactions/users/items, chọn positives theo threshold riêng. Không áp mặc định rating≥4 của CSE631 rồi gọi là exact replication của protocol rating threshold khác.
+Recommenders: ItemKNN/BPR/MultiVAE/NCL; rerankers GS/COMBMNZ/BordaCount. Ngoài metrics relevance, bài so exposure-only và joint measures. Mục tiêu là kiểm tra các thước đo có đồng thuận với cách nhìn Pareto hay không, không phải tuyên bố một recommender mới thống trị mọi baseline.
+Với con số ML20M ở Mục1, speedup tính lại là75,77/2,60≈29,14lần. Đây là thời gian tạo reference trong điều kiện bài, không phải latency phục vụ từng user của hệ gợi ý. Kendall τ0,97 là độ nhất quán thứ hạng trong đối chiếu, không phải “accuracy97%”. Không lấy nó thay NDCG hoặc tỷ lệ constraint hợp lệ.
+Cluster dùng nhiều loại CPU/GPU; chưa quy về một cấu hình laptop16GB. Khi triển khai luận văn, đo riêng thời gian reference, inference, peak RAM và số users/items. Kết quả nhanh hơn do bỏ phần lớn users không thể chỉ báo như cải tiến thuật toán.
+11. Hạn chế, ba hướng cải tiến và điều kiện bác bỏ
+Hạn chế tác giả thừa nhận gồm không thể đối chiếu theoretical frontier đầy đủ và cần hiểu thêm hành vi metrics. Nhận xét của tài liệu: reference biết test labels, hai mục tiêu, sensitivity với metric scaling và khả năng khác pool là các điều phải kiểm soát khi chuyển sang CSE631. DPFR vẫn phụ thuộc định nghĩa fairness; nó không biến equal exposure thành chuẩn tắc duy nhất.
+Hướng A: candidate-constrained reference. Giữ mỗi Cᵤ từ BPR rồi tính reference chỉ chọn item trong Cᵤ; so với reference toàn catalog. Prior art là DPFR/FairSync; điểm cần chứng minh là phân rã retrieval loss và reranking loss theo cùng metric. Trên tập nhỏ dùng enumeration/solver; ablation pool50/100/300, random/control enriched pools cùng M. Bác bỏ giả thuyết nếu kết luận không ổn định hoặc chỉ do thay đổi universe theo thuật toán.
+Hướng B: ba mục tiêu không gộp tùy ý. Thêm ILD và nghiên cứu cách lựa reference trên surface có ý nghĩa. Cần formalism và lựa chọn preference rõ; không tự áp arc length2D cho surface3D. Baseline là báo vector metric, hypervolume có reference cố định và pairwise DPFR. Bác bỏ variant nếu đổi đơn vị/normalization nhẹ làm đảo thứ hạng không giải thích được hoặc variant thưởng nghiệm bị dominate.
+Hướng C: uncertainty của frontier và model ranking. Resample users/batches đúng dependency, dựng lại reference khi cần, đo CI của distance và xác suất đổi winner. So với giữ reference cố định để tách evaluation uncertainty. Đối chiếu bản mở rộng2026 trước novelty claim. Bác bỏ giả thuyết nếu bootstrap chỉ lặp lại cùng predictions có coupling nhưng bị diễn giải như đã bao gồm training/policy randomness.
+12. Nguồn và câu hỏi tự kiểm trước khi dùng trong luận văn
+Nguồn chính: paper HTML, publisher, repo/README, Oracle2Fair code, approximation, distance notebook, metrics, bản mở rộng2026.
+Tự kiểm: dominance khác cộng điểm thế nào; vì sao utopia có thể vô nghiệm; vì sao α0,5 không phải trung vị index; vì sao oracle dùng test hợp lệ khi hậu kiểm nhưng không hợp lệ khi tune; vì sao một đường monotone chưa chứng minh global frontier; vì sao9 phương án toy là exact còn đường trên dataset lớn cần phát biểu thận trọng. Trả lời được các câu này giúp sử dụng DPFR như một công cụ khoa học thay vì thêm một tên metric vào bảng.
+Bài tập thêm: trong toy, cấm user2 chọnA rồi liệt kê sáu phương án còn lại; kiểm tra điểm relevance1 còn khả thi không. Sau đó đổi fairness sang entropy của exposure và xem quan hệ dominance có giữ nguyên. Không cần kỳ vọng trước đáp án thuận lợi: mục tiêu là thấy tập feasible và định nghĩa metric cùng quyết định frontier.
+Phụ lục A. Danh mục trích dẫn chuẩn hóa
+Các mục dưới đây ghi đủ tên công trình, năm/nơi công bố và link để tra cứu. Gồm bài chính và tài liệu đối chiếu cho luận văn; không khẳng định mọi mục đều nằm trong bibliography của bài gốc. Mã A1, A2… chỉ dùng trong phụ lục của tài liệu này.
+[A1] Theresia Veronika Rampisela, Tuukka Ruotsalo, Maria Maistro, Christina Lioma. Joint Evaluation of Fairness and Relevance in Recommender Systems with Pareto Frontier. ACM The Web Conference 2025, tr. 1548–1566. DOI 10.1145/3696410.3714589. Bài/toàn văn; code.
+[A2] Theresia Veronika Rampisela, Maria Maistro, Tuukka Ruotsalo, Falk Scholer, Christina Lioma. Relevance-aware Individual Item Fairness Measures for Recommender Systems: Limitations and Usage Guidelines. ACM Transactions on Recommender Systems 4(3), Article 37, 45 trang; online 05/03/2026. DOI 10.1145/3765624. Bài/toàn văn; code.
+[A3] Chen Xu, Zhirui Deng, Clara Rus, Xiaopeng Ye, Yuanna Liu, Jun Xu, Zhicheng Dou, Ji-Rong Wen, Maarten de Rijke. FairDiverse: A Comprehensive Toolkit for Fairness- and Diversity-aware Information Retrieval. ACM SIGIR 2025, resource paper, tr. 3540–3550. DOI 10.1145/3726302.3730280. Bài/toàn văn; code.
+[A4] Steffen Rendle, Christoph Freudenthaler, Zeno Gantner, Lars Schmidt-Thieme. BPR: Bayesian Personalized Ranking from Implicit Feedback. UAI 2009, 460–469. PMLR và PDF.
+[A5] Wayne Xin Zhao và cộng sự. RecBole: Towards a Unified, Comprehensive and Efficient Framework for Recommendation Algorithms. CIKM 2021. DOI 10.1145/3459637.3482016; code.

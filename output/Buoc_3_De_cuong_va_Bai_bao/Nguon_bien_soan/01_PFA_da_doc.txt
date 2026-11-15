@@ -1,0 +1,139 @@
+CSE631  |  ĐỀ TÀI 07  |  BƯỚC 2
+PAPER 01ĐỌC, HIỂU VÀ PHÂN TÍCH
+Post-hoc Provider Fairness Adaptation via Hierarchical Exposure Alignment
+Jingzhi Li; Zhiyong Cheng; Richang Hong; Meng Wang
+ACM SIGIR 2026
+DOI: 10.1145/3805712.3809597  |  Bài/toàn văn  |  Code chính thức
+Hướng dẫn tiếng Việt cho người mới bắt đầu
+Từ bài toán, định nghĩa và công thức đến mã giả, ví dụ số, đọc code, thực nghiệm và hướng phát triển luận văn.
+Ngữ cảnh: accuracy–diversity–exposure balanced reranking; điều kiện dự kiến máy 16 GB RAM.
+Phạm vi kiểm chứng
+Đọc tài liệu và mã nguồn truy cập được; chạy các ví dụ giảng giải nhỏ. Chưa huấn luyện lại hoặc tái lập đầy đủ benchmark gốc. Ví dụ tự xây dựng và nhận xét độc lập được ghi nhãn trong nội dung.
+Các tệp mã kèm theo là phần đã đọc/trích xuất qua web; xem SOURCE.md để biết phần thiếu và link repo đầy đủ. Tài liệu không thay thế bài gốc và điều kiện sử dụng dữ liệu/mã nguồn.
+
+1. Nhận diện bài báo và phạm vi tài liệu
+Jingzhi Li, Zhiyong Cheng, Richang Hong và Meng Wang, Post-hoc Provider Fairness Adaptation via Hierarchical Exposure Alignment, SIGIR 2026. DOI: https://doi.org/10.1145/3805712.3809597. Bản đọc: https://arxiv.org/html/2605.01524v1. Mã tác giả: https://github.com/Tam-JQK/Post-train. Ngày kiểm tra nguồn: 15/11/2026.
+Đây là tài liệu học và phân tích độc lập bằng tiếng Việt. Các biểu thức được dẫn theo số phương trình của bản arXiv v1; ví dụ tính số, diễn giải trực giác và đề xuất luận văn do người biên soạn xây dựng. Không có kết quả huấn luyện mới nào được trình bày như kết quả tái lập. Mã minh họa nhỏ trong thư mục Vi_du_chay_tay đã được chạy; việc đó chỉ kiểm tra phép tính minh họa.
+Điểm cần hiểu ngay: PFA đóng băng mô hình gợi ý đã huấn luyện, học thêm một adapter hiệu chỉnh điểm. HEFA là hàm mục tiêu công bằng phân cấp dùng để học adapter. PFA không đồng nghĩa HEFA, và cải thiện provider fairness chưa đồng nghĩa cải thiện đa dạng thể loại trong từng danh sách.
+2. Kiến thức chuẩn bị và bản đồ đọc
+Người mới nên học theo ba lượt. Lượt một chỉ cần hiểu top-K, điểm dự đoán, nhà cung cấp và exposure. Hãy nghĩ đến một cửa hàng có nhiều nhãn hàng: danh sách vẫn chứa sản phẩm hợp sở thích nhưng có thể dồn gần hết vị trí đầu cho một nhãn hàng. Lượt hai học vector xác suất, logarithm, KL divergence và gradient. Lượt ba mới đọc differentiable sorting và chứng minh phân rã KL.
+Đọc Mục 3.1 trước để tránh nhầm item với provider. Sau đó xem Hình 2, đọc công thức (8), (9), (15), (21). Khi đã nối được điểm đầu vào với loss đầu ra, quay lại Mục 3.3 về sắp xếp khả vi. Cuối cùng đọc Định lý 4.1 và Bảng 2–3. Không cần bắt đầu bằng toàn bộ mạng neural; bài toán công bằng của bài nằm ở cách cộng exposure và xác định mục tiêu.
+Điểm dự đoán là số mô hình dùng để xếp hạng, không tự nhiên là xác suất mua. Một score 0,8 chỉ có nghĩa xác suất 80% nếu đã được hiệu chuẩn và kiểm chứng tương ứng. Exposure là cơ hội nhìn thấy, cũng không bằng doanh thu. Khi thuyết trình, phải giữ ba tầng này tách biệt để người nghe hiểu điều thực sự đã được tối ưu.
+3. Bài toán: đầu vào, đầu ra và giả định
+Đầu vào gồm tương tác user–item, ánh xạ mỗi item sang provider, embedding của mô hình đã huấn luyện và chính sách công bằng mong muốn. Đầu ra là adapter và danh sách gợi ý sinh từ điểm đã hiệu chỉnh. Trong thương mại điện tử, item có thể là một chai mỹ phẩm và provider là thương hiệu; trong RateBeer, item là loại bia và provider là hãng nấu bia.
+Giả định quan trọng là biết provider của từng item. MovieLens 1M gốc không cung cấp sẵn người bán theo nghĩa thương mại điện tử. Nếu dùng genre làm nhóm thì đang đổi đối tượng nghiên cứu: nhóm nội dung khác nhà cung cấp. Một luận văn có thể nghiên cứu cả hai, nhưng phải đặt tên thí nghiệm đúng và không coi kết quả phim là bằng chứng trực tiếp về công bằng người bán.
+PFA cần embedding truy cập được và đủ ứng viên để thay đổi exposure. Nếu tập ứng viên chỉ có sản phẩm của một provider, adapter không thể tạo ra sản phẩm thuộc provider khác. Đây là giới hạn khả thi của đầu vào, không phải lỗi do chọn learning rate. Trước khi tối ưu nên thống kê tỷ lệ user có ít nhất hai hoặc ba provider trong tập ứng viên.
+4. Công trình trước và khoảng trống có điều kiện
+Các hướng gần gồm FairRec về phân bổ cơ hội hiển thị, CPFair về reranking người dùng–nhà sản xuất, TaxRank về tái phân phối utility, ElasticRank về đánh đổi accuracy–fairness và FairDual về trọng số trong huấn luyện. PFA đặt mình ở giữa huấn luyện toàn bộ và reranking cố định: backbone giữ nguyên, phần hiệu chỉnh được học.
+Để xác định đóng góp của luận văn, không thể chỉ nói “thêm module sau backbone” vì PFA đã làm điều đó. Cũng không thể xem “cân bằng giữa nhóm và trong nhóm” là ý tưởng chưa ai nghiên cứu. Khoảng trống khả dĩ phải gắn với một điều kiện chưa được kiểm tra đủ: drift theo thời gian, dữ liệu provider thiếu, ràng buộc đa dạng, ngân sách độ trễ hoặc mức mất accuracy được khống chế.
+Một phát biểu tốt là: dưới cùng checkpoint và tập ứng viên, liệu adapter có ràng buộc diversity có giữ lợi ích exposure khi chuyển sang temporal split hay không? Phát biểu này có thể bị bác bỏ. Phát biểu “phương pháp của tôi công bằng hơn và tốt hơn” thiếu chuẩn công bằng, đối tượng so sánh và điều kiện kiểm nghiệm.
+5. Từ điển ký hiệu và cách đọc tensor
+Ký hiệu
+Ý nghĩa
+Ví dụ trực giác
+U, V, S
+Tập user, item, provider
+2 khách, 4 sản phẩm, 3 hãng
+M, N, L
+Số phần tử của ba tập
+M=2, N=4, L=3
+K
+Độ dài danh sách cuối
+K=2
+e_u, e_v; d
+Embedding user/item và số chiều
+Một vector 32 số
+y_hat, Delta, y_tilde
+Điểm gốc, hiệu chỉnh, điểm cuối
+0,90−0,16=0,74
+B, h
+Batch user và chiều ẩn adapter
+B=256; h là cấu hình MLP
+P_soft[v,k]
+Khối lượng mềm item v ở vị trí k
+0,8 ở rank 1, 0,2 ở rank 2
+b_k
+Trọng số chú ý tại rank k
+b_1=1; b_2≈0,63093
+e_s, p_s, t_s
+Exposure provider, tỷ phần thực, tỷ phần đích
+p=(0,5;0,3;0,2)
+G_c, C
+Nhóm provider thứ c, số nhóm
+head/mid/tail; C=3
+pG, tG, tbarG
+Tỷ phần nhóm thực, đích nhóm, cộng đích provider
+Hai chính sách đích có thể khác nhau
+p(c), t(c)
+Phân bố có điều kiện trong nhóm
+B,C nhận 75%/25% trong nhóm
+lambda_inter/intra/acc
+Trọng số ba phần loss
+Giá trị lớn ưu tiên phần tương ứng
+beta
+Độ sắc của sắp xếp mềm
+beta lớn gần thao tác swap cứng
+r_u, IDCG
+Nhãn relevance và DCG lý tưởng
+Binary positive từ tương tác
+
+Tensor B×N×d có ba trục khác nhau. Chẳng hạn 2×4×32 nghĩa hai user, mỗi user có bốn ứng viên, mỗi ứng viên mang vector 32 chiều. Broadcast embedding user tạo ra bốn bản tham chiếu theo trục ứng viên; concat ghép user và item thành vector 64 chiều. Nếu nhầm trục rank với trục item khi tính exposure, chương trình vẫn có thể chạy nhưng metric sẽ sai về ý nghĩa.
+6. Công thức trung tâm và ý nghĩa
+Công thức (1)–(2) tính exposure provider bằng tổng trọng số vị trí của mọi item thuộc provider đó. Với danh sách dài hai, provider chiếm cả hai vị trí nhận 1+1/log2(3)≈1,63093 đơn vị. Tổng exposure của toàn hệ thống là tổng theo mọi user; tỷ phần p_s được chuẩn hóa bằng tổng này.
+Ở (6)–(8), adapter nhận concat embedding, đi qua ba lớp tuyến tính với ReLU giữa các lớp, rồi cộng hiệu chỉnh vào điểm gốc:
+Z = concat(embedding_user, embedding_item)H1 = ReLU(Z W1 + b1)H2 = ReLU(H1 W2 + b2)Delta = H2 W3 + b3y_tilde = y_hat + Delta
+Vấn đề huấn luyện xuất hiện ở top-K: đổi score một chút thường không đổi thứ hạng, sau đó một thay đổi nhỏ khác lại làm hai item đổi chỗ. Đạo hàm của quyết định rời rạc không cung cấp tín hiệu học thông thường. Bài dùng ma trận hoán vị mềm để thay một quyết định 0/1 bằng khối lượng liên tục. Công thức (9) cộng P_soft[v,k]×b_k, nên gradient có đường đi từ loss exposure về score rồi về adapter.
+Hai xác suất 0,8 và 0,2 trong ma trận mềm không nhất thiết là xác suất hành vi người dùng; chúng là kết quả của phép relaxation. Trong suy luận cuối cùng vẫn phải dùng danh sách cứng và đo exposure cứng. Một loss mềm thấp chưa đủ chứng minh top-K thực đạt mục tiêu.
+Ở (15), HEFA bằng lambda_inter×KL giữa nhóm cộng lambda_intra×tổng KL trong nhóm có trọng số pG_c. Ở (21), thêm lambda_acc×loss diffNDCG. Trọng số accuracy càng lớn càng chống việc thay đổi làm giảm ranking quality; không có lý do mặc định một giá trị dùng tốt cho mọi dataset.
+Công thức (18)–(20) làm mềm relevance theo vị trí rồi đưa vào hàm gain 2^r−1. Cần chú ý thứ tự phép toán: 2^(trung bình r)−1 khác trung bình của 2^r−1. Khi viết lại code, phải xác định đang tái lập định nghĩa nào thay vì coi mọi “soft NDCG” tương đương.
+7. Định lý phân rã KL: tự đi từng bước
+Định lý 4.1, công thức (11), là trung tâm lý thuyết có thể kiểm tra bằng đại số:
+KL(p || t) = KL(pG || tG)           + sum_c pG_c KL(p(c) || t(c))           + sum_c pG_c log(tG_c / tbarG_c).
+Điều kiện cần: nhóm tạo thành phân hoạch, các phân bố được chuẩn hóa, target dương trên miền có exposure và phép chia trong nhóm có ý nghĩa. Nhóm có pG=0 cần được xử lý theo giới hạn hoặc quy ước rõ; không chia trực tiếp cho 0. Đây là một đồng nhất thức phân bố, không phải định lý đảm bảo adapter tìm nghiệm tối ưu toàn cục.
+Đầu tiên viết p_s=pG_c×p_s(c) và t_s=tbarG_c×t_s(c). Tiếp theo tách log(p_s/t_s) thành log(pG_c/tbarG_c)+log(p_s(c)/t_s(c)). Nhân p_s và cộng provider trong cùng nhóm. Vì tổng p_s(c)=1, phần đầu rút về pG_c×log(pG_c/tbarG_c); phần sau trở thành pG_c×KL trong nhóm. Cuối cùng chèn tG_c vào tỷ số bằng nhân và chia cùng một đại lượng. Hai log mới cho KL giữa nhóm và phần calibration.
+Nếu tG_c=tbarG_c, calibration bằng 0. Nếu mục tiêu provider là đồng đều nhưng một nhóm có nhiều provider hơn nhóm khác, mục tiêu nhóm đồng đều thường không bằng mục tiêu cộng từ provider. Khi đó không được bỏ calibration rồi nói HEFA luôn đúng bằng global KL. HEFA cho phép thay đổi chính sách và trọng số; tính linh hoạt này chính là lý do hai mục tiêu có thể khác nhau.
+Một kiểm tra hữu ích khác: calibration có thể âm. Chỉ toàn bộ KL là không âm; không phải mọi thành phần của đẳng thức đều là divergence không âm. Ví dụ ở phần tiếp theo cho một calibration âm, giúp phát hiện cách giải thích sai khi coi nó như một penalty độc lập luôn dương.
+8. Quy trình thuật toán và mã giả để tự hiện thực
+1. Chuẩn bị interaction và ánh xạ item→provider; khóa train/valid/test.2. Huấn luyện backbone trên train, chọn checkpoint trên validation.3. Đóng băng mọi tham số backbone; khởi tạo adapter.4. Với mỗi batch user:   a. Lấy ứng viên và relevance dùng trong huấn luyện adapter.   b. Tính điểm gốc + hiệu chỉnh adapter.   c. Tính soft permutation; suy ra provider exposure.   d. Chuẩn hóa p; gom pG; tính hai thành phần HEFA.   e. Tính diffNDCG và total loss; chỉ cập nhật adapter.5. Chọn cấu hình bằng quy tắc validation đã định trước.6. Dùng hard top-K trên test; báo accuracy, exposure và tài nguyên.
+Mã giả này là cách trình bày học tập, không thay thế các chi tiết sampling và bookkeeping trong mã tác giả. Đặc biệt, nếu tính exposure theo mini-batch thì p là ước lượng của phân bố toàn bộ user. Batch nhiều user thích cùng một provider có thể tạo gradient rất khác batch cân bằng. Đó là một nguồn độ nhạy cần đo, ngay cả khi mạng adapter nhỏ.
+9. Ví dụ tính tay tự xây dựng và kết quả chạy
+Bài gốc có Hình 2 minh họa kiến trúc và chứng minh đại số ở Mục 4.3. Không dùng hình kiến trúc đó như một ví dụ số hoàn chỉnh. Ví dụ dưới đây do người biên soạn tự xây dựng, không phải thí nghiệm hay ví dụ của tác giả.
+Cho bốn item A1,A2,B,C với provider tương ứng A,A,B,C. Hai user có điểm [0,90;0,85;0,70;0,65] và [0,88;0,82;0,78;0,73]. Top-2 gốc đều A1,A2. Cộng hiệu chỉnh [−0,16;−0,16;0;+0,04] cho cả hai user chỉ để minh họa; chưa học MLP. Điểm user 1 thành [0,74;0,69;0,70;0,69], chọn A1,B. User 2 thành [0,72;0,66;0,78;0,77], chọn B,C.
+Exposure A=1; B=0,63093+1; C=0,63093. Tổng 3,26186; tỷ phần là [0,306574;0,500000;0,193426]. Global KL với target đều giảm từ log(3)=1,098612 xuống 0,071805. Chia nhóm G1={A}, G2={B,C}, chọn target nhóm [0,5;0,5]. Tính được inter=0,076816, intra có trọng số=0,070171, calibration=−0,075181. Cộng ba số đúng 0,071805.
+Để thấy đánh đổi, đặt positive user 1={A1,A2}, user 2={A1,B}. NDCG trung bình gốc 0,806574; sau điều chỉnh 0,613147. Exposure tốt hơn nhưng accuracy giảm trong ví dụ này. Chỉ số fairness không tự bảo đảm chất lượng cá nhân.
+Ví dụ swap mềm độc lập: hai score 0,8 và 0,6, beta=10 cho alpha=atan(−2)/pi+0,5≈0,147584. Kết quả mềm là 0,770483 và 0,629517. Tổng vẫn 1,4, cho thấy phép trộn bảo toàn tổng nhưng chưa phải hoán vị cứng.
+Chạy: python3 Vi_du_chay_tay/01_PFA.py từ thư mục gói. File dùng thư viện chuẩn, có assertion đẳng thức KL. Nó không tải dữ liệu, không huấn luyện adapter và không chứng minh bất kỳ cải thiện nào trên Amazon.
+10. Đọc mã nguồn và chuẩn bị môi trường
+Các file đã đối chiếu trực tuyến gồm base_model/post_train.py, trainer.py và README. Post.forward broadcast user embedding, concat item embedding rồi trả hiệu chỉnh. CombinedModel.forward tính dot product và cộng hiệu chỉnh, sau đó sigmoid. Sigmoid đơn điệu nên thứ tự score thường giữ nguyên, nhưng gradient và độ lớn score thay đổi.
+Trong RecTrainer.train, backbone được tắt gradient trước giai đoạn post training; optimizer dùng tham số post model. supplier_index dựng mask provider–item; setup_supplier_groups dùng phân vị số item. Có thêm generate_pid2group dựa trên số tương tác train. Vì bài viết nói chia theo exposure train, phải truy vết đường gọi và ghi cấu hình thực chạy. Không được tự sửa khác biệt rồi gọi là tái lập nguyên trạng.
+README xác nhận Python≥3.8, PyTorch≥1.10 và lệnh:
+pip install torch numpy pandas scipy scikit-learn tqdm pyyamlpython main.py
+Cần chuẩn bị train.inter, valid.inter, test.inter, iid2pid.json và cấu hình. Trên máy 16 GB, nên dùng Beauty trước, giảm batch và số ứng viên trong lần kiểm tra đầu, rồi báo rõ những thay đổi đó. Không có cam kết mã gốc chạy nguyên trạng trên mọi hệ điều hành. Thư mục Ma_nguon/01_PFA chứa ghi chú nguồn web và bản đối chiếu; không phải Git snapshot đầy đủ.
+11. Dữ liệu, baseline, phép đo và kết quả gốc
+Bài dùng Amazon Beauty, Movies & TV, RateBeer; provider tương ứng brand/brewer. Mỗi user random split 70/10/20 sau lọc 5-core. Beauty có 11.742 user, 6.506 item, 196 provider, 98.404 tương tác. Backbone BPRMF, LightGCN, SGL; đối sánh SDRO, Multi-FR, Ada2Fair, FairDual, FairRec, CPFair, TaxRank, ElasticRank. K=20, ba lần chạy, embedding 32, batch 256, GPU RTX 4080; nguồn là Mục 5.1 và Bảng 1.
+Bảng 2, Beauty+BPRMF: NDCG 0,1000→0,0943; Gini 0,7260→0,6282. Tính thêm để diễn giải: mất NDCG tương đối 5,7%; Gini giảm khoảng 13,47%. Đây là hai phép tính từ số tác giả, không phải kết quả chạy mới. Gini thấp hơn mô hình gốc không có nghĩa mọi fairness metric cùng cải thiện; phải đọc thêm entropy và CV.
+Các phép đo cần giữ: NDCG/HR/MRR cho ranking, Gini/entropy/CV cho provider exposure, runtime/RAM cho khả thi. Trong luận văn ba mục tiêu, bổ sung ILD, genre coverage và catalog coverage với mẫu số rõ ràng. Không đặt NDCG này cạnh NDCG≈0,99 dùng score retention của ElasticRank để so accuracy tuyệt đối.
+12. Đóng góp tác giả, giới hạn và các hướng kiểm chứng
+Đóng góp được bài xác định gồm adapter sau huấn luyện, HEFA phân cấp và thực nghiệm nhiều backbone. Không gán thêm bảo đảm quota cứng hay đảm bảo optimum cho toàn mạng neural. Tác giả dùng target uniform như một lựa chọn chính sách; điều đó không chứng minh uniform là chuẩn công bằng phù hợp mọi thị trường.
+Nhận xét của người biên soạn: random split chưa đủ chứng minh bền vững theo thời gian; exposure mềm và cứng có thể lệch; target nhóm có thể xung đột target provider; ứng viên hạn chế gây bất khả thi. MLP có thêm chi phí suy luận dù không cần chạy sorting khả vi khi phục vụ. Cụm “không thêm overhead” nên được đọc theo cấu trúc xử lý, không coi chi phí MLP bằng 0.
+Hướng A: thêm diversity tối thiểu trên cùng backbone. So PFA, PFA+MMR và phương pháp đề xuất; ablation bỏ diversity, bỏ HEFA và thay hard constraint bằng penalty. Bác bỏ đóng góp nếu lợi ích chỉ đến từ mở rộng candidates hoặc tune nhiều lần hơn.
+Hướng B: policy chuyển đổi theo thời gian. Đổi target exposure ở một thời điểm, đo thời gian thích nghi, cumulative violation và NDCG. Đối sánh huấn luyện lại PFA từ đầu, warm-start adapter và ElasticRank. Bác bỏ nếu warm-start làm giảm công bằng lâu hơn baseline rẻ hơn.
+Hướng C: kiểm định chênh lệch soft–hard. Sweep beta, batch, candidate size; đo KL mềm trong train và exposure cứng trên test. Bác bỏ giả thuyết surrogate tốt nếu giảm loss liên tục nhưng hard exposure không cải thiện hoặc thứ hạng cấu hình đảo mạnh giữa seeds.
+13. Tài liệu quan trọng để đọc tiếp
+Bài PFA và code: các đường dẫn ở Mục 1; đọc Mục 4.3, 5.1 và trainer.py song song.
+BPR, Rendle và cộng sự, UAI 2009: https://proceedings.mlr.press/r7/rendle09a.html.
+LightGCN, He và cộng sự, SIGIR 2020: https://doi.org/10.1145/3397271.3401063.
+CPFair, Naghiaei và cộng sự, SIGIR 2022: https://doi.org/10.1145/3477495.3531959.
+FairDual, ICLR 2025: https://arxiv.org/abs/2502.09319.
+TaxRank, SIGIR 2024: https://doi.org/10.1145/3626772.3657766.
+ElasticRank, SIGIR 2025: https://doi.org/10.1145/3726302.3730106.
+Differentiable Sorting Networks, Petersen và cộng sự: https://arxiv.org/abs/2105.04019.
+Khi đọc xong, người học nên tự giải thích được vì sao target nhóm đồng đều và target provider đồng đều có thể khác nhau; đó là câu hỏi kiểm tra hiểu bài tốt hơn việc chỉ nhớ tên adapter.
+Phụ lục A. Danh mục trích dẫn chuẩn hóa
+Các mục dưới đây ghi đủ tên công trình, năm/nơi công bố và link để tra cứu. Gồm bài chính và tài liệu đối chiếu cho luận văn; không khẳng định mọi mục đều nằm trong bibliography của bài gốc. Mã A1, A2… chỉ dùng trong phụ lục của tài liệu này.
+[A1] Jingzhi Li, Zhiyong Cheng, Richang Hong, Meng Wang. Post-hoc Provider Fairness Adaptation via Hierarchical Exposure Alignment. ACM SIGIR 2026. DOI 10.1145/3805712.3809597. Bài/toàn văn; code.
+[A2] Chen Xu, Jujia Zhao, Wenjie Wang, Liang Pang, Jun Xu, Tat-Seng Chua, Maarten de Rijke. Understanding Accuracy-Fairness Trade-offs in Re-ranking through Elasticity in Economics. ACM SIGIR 2025, tr. 539–548. DOI 10.1145/3726302.3730106. Bài/toàn văn; code.
+[A3] Chen Xu, Yuxin Li, Wenjie Wang, Liang Pang, Jun Xu, Tat-Seng Chua. Bridging Jensen Gap for Max-Min Group Fairness Optimization in Recommendation. ICLR 2025, conference paper. Bài/toàn văn; code.
+[A4] Theresia Veronika Rampisela, Tuukka Ruotsalo, Maria Maistro, Christina Lioma. Joint Evaluation of Fairness and Relevance in Recommender Systems with Pareto Frontier. ACM The Web Conference 2025, tr. 1548–1566. DOI 10.1145/3696410.3714589. Bài/toàn văn; code.
+[A5] Steffen Rendle, Christoph Freudenthaler, Zeno Gantner, Lars Schmidt-Thieme. BPR: Bayesian Personalized Ranking from Implicit Feedback. UAI 2009, 460–469. PMLR và PDF.
+[A6] Xiangnan He, Kuan Deng, Xiang Wang, Yan Li, Yongdong Zhang, Meng Wang. LightGCN: Simplifying and Powering Graph Convolution Network for Recommendation. SIGIR 2020, 639–648. DOI 10.1145/3397271.3401063.

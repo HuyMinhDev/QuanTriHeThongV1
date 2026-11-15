@@ -1,0 +1,405 @@
+CSE631 | Đề cương nghiên cứu cho cao học CNTT  •  Trang 1 
+ĐỀ CƯƠNG BÀI TẬP LỚN & ĐỊNH HƯỚNG LUẬN VĂN 
+HỌC PHẦN CSE631  |  CAO HỌC CÔNG NGHỆ THÔNG TIN 
+GVHD: TS.Nguyễn Khắc Chiến 
+ĐỀ TÀI 07: Hệ gợi ý thương mại điện tử đa mục tiêu cân bằng độ chính xác, đa 
+dạng và công bằng hiển thị sản phẩm 
+Accuracy –Diversity –Exposure Balanced Re -ranking in Recommender Systems  
+ 
+Điều kiện triển khai: Khả thi trung bình, ch ỉ cần MovieLens 100K/1M và máy tính 
+16GB; LightGCN lớn cần GPU. 
+Định hướng hoàn thành: bài tập lớn có demo và báo cáo thực nghiệm → luận văn với 
+baseline được tái lập → bản thảo bài báo với đóng góp và phân tích độ tin cậy. Không 
+mặc định công bố thành công chỉ từ ý tưởng. 
+Mốc Sản phẩm tối thiểu Tiêu chí chấp nhận 
+Bài tập lớn Báo cáo 12 –20 trang; code 
+demo; 1 dữ liệu; ≥2 baseline 
+Cài chạy được; có ví d ụ tính tay; 
+thí nghiệm và phân tích giới hạn 
+Luận văn Mô hình/thu ật toán m ới; ≥2 
+datasets/kịch bản; ablation 
+Reproducible; đối sánh công bằng; 
+kiểm định và threats 
+Bản th ảo 
+công bố 
+RQs, formalism, related work sát 
+chủ đề; thực nghiệm đầy đủ 
+Gap kiểm chứng; bằng chứng tăng 
+hiệu quả; phản biện được 
+1. Bối cảnh, nhu cầu thực tế và phát biểu bài toán 
+Hệ gợi ý có thể đạt Recall@K cao nhưng liên tục đẩy một nhóm sản phẩm phổ biến lên 
+đầu, giảm tính khám phá c ủa người dùng và khả năng hiển thị của sản phẩm ít phổ 
+biến. Mục tiêu nghiên cứu là tái xếp hạng có kiểm soát chứ không khẳng định công 
+bằng pháp lý khi chưa có thuộc tính nhạy cảm phù hợp. 
+Cho user u, item i, đi ểm relevance s_ui từ mô hình baseline, metadata th ể loại và độ 
+phổ biến. Tạo danh sách top-K tối đa hóa relevance trong khi đảm bảo mức đa dạng tối 
+thiểu và giới hạn exposure concentration; trả về Pareto trade-off và kiểm tra ảnh hưởng 
+cold-start. 
+2. Mục tiêu, câu hỏi nghiên cứu và yêu cầu cần đạt 
+2.1. Mục tiêu kiểm chứng được 
+1. Tái lập Popularity, ItemKNN, BPR-MF và LightGCN/RecBole với cùng split. 
+2. Đề xuất bộ reranker điều chỉnh relevance–diversity–exposure và chi phí tính toán. 
+
+CSE631 | Đề cương nghiên cứu cho cao học CNTT  •  Trang 2 
+3. Làm rõ độ nhạy trước K, catalog size, mức độ phổ biến của item và tham số λ. 
+4. Báo cáo precision/recall/NDCG, diversity, coverage và unfair exposure, không ch ỉ 
+một chỉ số. 
+2.2. Câu hỏi nghiên cứu (RQ) 
+1. RQ1: Có th ể tăng catalog coverage và diversity v ới mất NDCG@10 nằm trong 
+ngưỡng kiểm soát? 
+2. RQ2: Re -ranker dựa trên đ ộ bất định item popularity có t ốt hơn MMR thông 
+thường? 
+3. RQ3: Lợi ích thay đổi thế nào theo nhóm người dùng ít tương tác và kích thư ớc 
+danh sách K? 
+Yêu cầu kiểm định: với từng RQ phải có một bảng “câu hỏi → dữ liệu → baseline → 
+chỉ số → phân tích” và lý do không th ể kết luận nếu thiếu thí nghiệm; không gán sẵn 
+câu trả lời có lợi cho phương pháp đề xuất. 
+Cấp độ Đầu ra phải có 
+Định nghĩa bài 
+toán 
+Input / output / assumptions / constraints, notation nhất quán, 01 
+ví dụ tự kiểm. 
+Cơ sở khoa học Tối thiểu 03 tài liệu trực tiếp; nhận xét “đã làm gì – làm được gì 
+– chưa kiểm tra gì”. 
+Thuật toán Mã giả, đầu vào–đầu ra, kiểm tra tính đúng, th ời gian/bộ nhớ 
+khi có căn cứ. 
+Thực nghiệm Tập dữ liệu, license, train/validation/test, baselines, metrics, 
+seeds, ablation. 
+Công bố Kết luận giới hạn theo dữ liệu; code có README, env, l ệnh 
+chạy, bảng kết quả. 
+3. Khái niệm, định nghĩa và mô hình toán học 
+3.1. Implicit feedback:  Tín hiệu tương tác (xem, nhấp, mua) không đồng nhất với sở 
+thích dương. 
+3.2. BPR: Loss ranking theo cặp item được tương tác và không được tương tác. 
+3.3. Recall@K / NDCG@K:  Đo khả năng gợi đúng item trong t ập kiểm thử ở thứ 
+hạng K. 
+3.4. Intra-list diversity: Độ khác biệt giữa các item trong một danh sách đề xuất. 
+3.5. Catalog coverage:  Tỷ lệ item trong danh mục được hệ thống đề xuất ít nhất một 
+lần. 
+
+CSE631 | Đề cương nghiên cứu cho cao học CNTT  •  Trang 3 
+3.6. Exposure fairness: Đo sự tập trung/phân bố cơ hội xuất hiện của item/nhóm item 
+theo tiêu chí minh bạch. 
+3.7. Re -ranking: Tái sắp xếp top-N ứng viên bằng ràng buộc/điểm phụ sau mô hình 
+relevance. 
+Mô hình/tiêu chí toán h ọc đ ề xuất: Rerank_u = argmax_{S:|S|=K} 
+[Σ_{i∈S}s_ui+λ·diversity(S)−μ·concentration(S)], v ới hard constraint 
+exposure_top_popular≤θ trên toàn user (ư ớc lượng bằng tối ưu batch ho ặc dual 
+updates). 
+Lưu ý: mọi xác suất, chi phí và trọng số phải có đơn vị và nguồn hoặc ghi “giả định thí 
+nghiệm”; nếu không ước lượng được hiệu quả nhân quả, chỉ được báo cáo tối ưu trong 
+mô phỏng. 
+4. Ví dụ minh họa nhất quán và bài tập kiểm chứng 
+Ví dụ giả định: user thích 3 phim hành đ ộng A(0,95), B(0,93), C(0,90) và phim khoa 
+học D(0,88). Top -3 điểm thuần = A,B,C (2,78); n ếu lấy A,B,D thì tổng =2,76, giảm 
+0,02 điểm nhưng số thể loại là 2 thay vì 1. Đây là đánh đổi minh họa, chưa chứng minh 
+cải thiện mức độ hài lòng của người xem thật. 
+Giảng viên yêu cầu học viên: (i) liệt kê đầu vào và giả định; (ii) lập bảng tính bằng tay; 
+(iii) chứng minh hoặc phản ví dụ cho lựa chọn; (iv) viết unit test tái hiện kết quả; (v) 
+nêu điều gì sẽ làm kết luận thay đổi. 
+5. Công trình đã công bố: kết quả, phạm vi và hạn chế 
+5.1. BPR: Bayesian Personalized Ranking from Implicit Feedback 
+Tác giả – xuất bản: Rendle, S.; Freudenthaler, C.; Gantner, Z.; Schmidt -Thieme, L. 
+(2009) — UAI 2009, PMLR R7, 460–469 
+Nghiên cứu đã thực hiện / kết quả được bài công bố hoặc nguồn gốc hỗ trợ: Đề xuất 
+mục tiêu tối ưu ranking từ implicit feedback, làm baseline mạnh. 
+Giới hạn so với bài toán đang đặt ra (không đồng nghĩa “tác giả làm sai”): BPR tối ưu 
+xếp hạng preference; không trực tiếp đặt constraint catalog coverage/exposure fair. 
+Nguồn kiểm tra: https://proceedings.mlr.press/r7/rendle09a.html 
+5.2. LightGCN: Simplifying and Powering Graph Convolution Network for 
+Recommendation 
+Tác giả – xuất bản: He, X. et al. (2020) — ACM SIGIR 2020, tr.639 –648, DOI 
+10.1145/3397271.3401063 
+
+CSE631 | Đề cương nghiên cứu cho cao học CNTT  •  Trang 4 
+Nghiên cứu đã thực hiện / kết quả được bài công bố hoặc nguồn gốc hỗ trợ: Đơn giản 
+hóa GCN trong collaborative filtering và báo cáo l ợi thế so với NGCF trong setup tác 
+giả. 
+Giới hạn so với bài toán đang đ ặt ra (không đồng nghĩa “tác giả làm sai”): Mục tiêu 
+chính là recommendation accuracy; chưa tr ực tiếp xử lý ràng bu ộc đa m ục tiêu 
+exposure trong đề tài này. 
+Nguồn kiểm tra: https://doi.org/10.1145/3397271.3401063 
+5.3. RecBole: Towards a Unified, Comprehensive and Efficient Framework for 
+Recommendation Algorithms 
+Tác gi ả – xuất b ản: Zhao, W. X. et al. (2021) — ACM CIKM 2021, DOI 
+10.1145/3459637.3482016 
+Nghiên cứu đã thực hiện / kết quả được bài công bố hoặc nguồn gốc hỗ trợ: Cung cấp 
+thư viện baseline thống nhất, thuận tiện làm thí nghiệm và tái lập. 
+Giới hạn so với bài toán đang đặt ra (không đồng nghĩa “tác giả làm sai”): Là thư viện; 
+việc có nhiều baseline không tạo ra một giải pháp quản trị exposure cụ thể. 
+Nguồn kiểm tra: https://doi.org/10.1145/3459637.3482016 
+Cách đánh giá văn liệu: các kết luận về bài báo gốc có phạm vi ở dữ liệu/thiết lập tác 
+giả trình bày. “Chưa tr ực tiếp đánh giá” không ph ải bằng chứng chắc chắn chưa ai 
+nghiên cứu. Trước khi tuyên b ố tính mới, cần tìm b ản gần nhất theo t ừ khóa, so 
+DOI/phiên bản và đọc ít nhất abstract, methods, experiments, limitations. 
+6. Khoảng trống nghiên cứu và đóng góp mới DỰ KIẾN 
+Khoảng trống theo các nguồn đã kiểm tra ở Mục 5: các hướng hiện có chưa trực tiếp 
+đồng thời tối ưu các tiêu chí, ràng buộc hoặc bằng chứng được nêu trong phát biểu bài 
+toán của đề tài này. Đây là GAP CÓ ĐI ỀU KIỆN: cần kiểm tra sâu ít nhất 20–30 bài 
+báo gần nhất trước khi chốt đề cương luận văn/bản thảo công bố. 
+NC1 (giả thuyết): Exposure-Constrained ReRanker có ràng bu ộc diversity theo th ể 
+loại và tối đa phần trăm exposure dành cho top-popular decile. 
+NC2 (giả thuyết): Lựa chọn λ adaptively theo kích thước lịch sử của người dùng (điều 
+kiện lạnh/nóng). 
+NC3 (giả thuyết): Bảng trade-off accuracy/diversity/exposure với bootstrap confidence 
+intervals theo user; ablation trọng số, constraints. 
+Đóng góp kỳ vọng Cách chứng minh Cách bác bỏ 
+
+CSE631 | Đề cương nghiên cứu cho cao học CNTT  •  Trang 5 
+NC1: mô hình/định nghĩa 
+Trình bày khác bi ệt hình 
+thức, mệnh đề tính đúng 
+hoặc phản ví dụ. 
+Nếu bản chất tương đương 
+kỹ thuật đã có hoặc sai giả 
+định. 
+NC2: thuật toán/chính sách 
+So cùng ngân sách/t ập dữ 
+liệu v ới baseline g ần, 
+ablation. 
+Nếu biến thể không hơn 
+baseline hoặc hiệu quả chỉ 
+do tuning/split. 
+NC3: b ằng ch ứng th ực 
+nghiệm 
+Nhiều mức dữ liệu, thống 
+kê, nguồn gốc và code. 
+Nếu ch ỉ minh h ọa toy, 
+dùng ngu ồn không phù 
+hợp hoặc thiếu oracle. 
+7. Phương pháp nghiên cứu và phác thảo giải pháp 
+Phương pháp chủ đạo: Đối sánh offline trên MovieLens 100K/1M v ới temporal split; 
+huấn luyện top -N candidate BPR/LightGCN, reranking greedy/ILP theo λ; so MMR, 
+popularity penalty và reranker đ ề xuất. Không mặc định exposure theo popularity là 
+fairness đối với nhóm xã hội; chỉ đánh giá công bằng cơ hội hiển thị sản phẩm. 
+7.1. Quy trình kỹ thuật đề xuất 
+1. Tải MovieLens 100K và 1M, đ ọc license; chọn cách biến rating≥4 thành positive 
+thật rõ. 
+2. Tách train/validation/test theo timestamp t ừng user; đảm bảo test item không xu ất 
+hiện trong training history của user. 
+3. Xây popularity baseline, ItemKNN, BPR -MF bằng RecBole; thử LightGCN khi 
+GPU phù hợp. 
+4. Lấy 100 candidates/user, tính relevance score; vi ết phiên bản đơn giản MMR và 
+popularity penalty. 
+5. Tính similarity thể loại, entropy diversity, catalog coverage, Gini exposure; kiểm tra 
+bằng toy 4 phim. 
+6. Triển khai reranker có λ, μ, θ được tìm trên validation, không điều chỉnh theo test. 
+7. Thực nghiệm K=5/10/20, nhóm ít tương tác vs nhi ều, 10 seeds nếu training ngẫu 
+nhiên. 
+8. Thực hiện ablation không diversity, không exposure; báo cáo Pareto, runtime và 
+mức giảm accuracy. 
+7.2. Mã giả cấu trúc hệ thống 
+1. Input: t ập dữ liệu D có ngu ồn và license; c ấu hình thí nghi ệm Θ; seeds 
+S={1001,...,1010}. 
+
+CSE631 | Đề cương nghiên cứu cho cao học CNTT  •  Trang 6 
+2. Validate schema, timestamp, nhãn và giả định; dừng nếu không đáp ứng kiểm tra dữ 
+liệu. 
+3. Create split train/validation/test theo đúng đi ều kiện của miền; lưu index và 
+checksum. 
+4. Fit preprocessing chỉ trên train; tái sử dụng transform trên validation/test. 
+5. For each baseline b: cố định protocol; huấn luyện trên train; tune trên validation. 
+6. Define Proposed model/policy từ đóng góp NC1, NC2; kiểm tra bằng ví dụ nhỏ và 
+unit tests. 
+7. For s in S: train/evaluate mỗi thuật toán với cùng split/quy tắc random; lưu resource 
+metrics. 
+8. Ablate mỗi thành phần; chạy sensitivity của các giả định; không nhìn test để chọn 
+cấu hình. 
+9. Aggregate mean±SD, confidence intervals và per-case errors; tạo bảng minh bạch. 
+10. Output: predictions/decisions, metrics, configs, logs, plots, and clear limitations. 
+Mã giả trên là blueprint phương pháp nghiên cứu; không phải mã nguồn gốc của công 
+trình liên quan. Học viên cần hiện thực hóa lớp data loaders/model/policy/metrics đúng 
+từng đề tài. 
+8. Dữ liệu nghiên cứu: nguồn lấy, cấu trúc và điều kiện sử dụng 
+8.1. MovieLens 100K/1M/32M 
+Đặc điểm và vai trò: Dữ liệu rating và metadata phim, bản stable để benchmark. 
+Bắt đầu từ đâu: Dùng 100K cho bài t ập lớn, 1M cho luận văn; 32M nếu tài nguyên 
+mạnh. 
+Rủi ro/giới hạn cần ghi trong luận văn: Điều khoản GroupLens thường không cho công 
+bố lại dataset; phải đọc README, không tự đưa file gốc vào ZIP. 
+Nguồn dữ liệu: https://grouplens.org/datasets/movielens/ 
+8.2. RecBole packaged datasets 
+Đặc điểm và vai trò: Dataset sample và bộ chuyển dữ liệu tiêu chuẩn. 
+Bắt đầu từ đâu: Dùng split/config cố định cho baseline. 
+Rủi ro/giới hạn cần ghi trong luận văn: Kiểm tra điều kiện license của dữ liệu thành 
+phần trong framework. 
+Nguồn dữ liệu: https://github.com/RUCAIBox/RecBole 
+
+CSE631 | Đề cương nghiên cứu cho cao học CNTT  •  Trang 7 
+Mỗi thí nghi ệm ph ải xu ất manifest.csv v ới: dataset_name, source_url, 
+version/download_date, schema, original_n, filtered_n, split policy, sha256, license và 
+notes. Nếu dữ liệu có điều khoản không cho phân phối lại, chỉ công bố script tải hợp lệ 
+chứ không đưa bản sao vào kho mã nguồn. 
+9. Công cụ, mã nguồn đối sánh và cách cài đặt 
+9.1. RecBole 
+Mục đích: Huấn luyện và kiểm tra BPR/LightGCN 
+Cài/khởi động: pip install recbole; dùng `python run_recbole.py` theo README repo 
+phù hợp. 
+Link chính thức/nhóm phát triển: https://github.com/RUCAIBox/RecBole 
+9.2. LightGCN original 
+Mục đích: Mã tham khảo phương pháp LightGCN 
+Cài/khởi động: Clone và pin commit; không tùy ý so kết quả giữa thiết lập khác nhau. 
+Link chính thức/nhóm phát triển: https://github.com/kuandeng/LightGCN 
+9.3. scikit-learn 
+Mục đích: Tính similarity, tính khoảng tin cậy bootstrap 
+Cài/khởi động: pip install numpy pandas scikit-learn 
+Link chính thức/nhóm phát triển: https://scikit-learn.org/stable/ 
+9.6. Lộ trình thao tác từ con số 0 
+Bước 0: tạo project độc lập gồm data/raw, data/processed, src, configs, baselines, tests, 
+results, figures; đưa .gitignore để tránh commit dữ liệu gốc nhạy cảm; dùng Git để ghi 
+phiên bản. 
+Các lệnh và tên tệp dưới đây gồm một số tên script DỰ KIẾN phải tự xây dựng trong 
+dự án mới; chỉ lệnh tải/cloning công cụ gốc là tài nguyên đã tồn tại. Không được hiểu 
+các tên file scripts/... là mã đã được cung cấp. 
+python -m venv .venv 
+pip install recbole pandas numpy scipy 
+python run_recbole.py  # chạy baseline theo README hiện hành 
+python scripts/01_prepare_movielens.py --version ml-1m 
+python scripts/02_export_candidates.py --model BPR --topn 100 
+python scripts/03_evaluate_rerank.py --topk 10 --lambda 0.1 
+
+CSE631 | Đề cương nghiên cứu cho cao học CNTT  •  Trang 8 
+Bước kiểm tra đầu tiên: chạy ví dụ toy ở Mục 4; kiểm tra unit test và assertions. N ếu 
+kết quả chưa khớp, chưa chuyển sang bộ dữ liệu lớn. Nếu thư viện cũ không tương 
+thích, ghi rõ pinned environment/commit và thực hiện lại baseline trên code cùng thuật 
+toán, tránh che giấu khác biệt. 
+10. Thiết kế thực nghiệm, baseline và tiêu chí đánh giá 
+10.1. Nhóm đối sánh (baseline) 
+1. MostPopular. 
+2. ItemKNN. 
+3. BPR-MF (Rendle 2009). 
+4. LightGCN (He 2020). 
+5. MMR re-ranking; popularity-penalty; proposed constrained reranker. 
+10.2. Chỉ tiêu khoa học và thực tiễn 
+1. Recall@K, NDCG@K, MAP@K; ILD, genre coverage, catalog coverage, exposure 
+Gini. 
+2. ΔNDCG so model g ốc, coverage gain, compute overhead, cold -user subgroup 
+breakdown. 
+3. Pareto frontier theo λ,μ; stability theo seed; phân tích trade-off. 
+10.3. Giao thức thực nghiệm bắt buộc 
+1. Bộ dữ liệu: ít nhất 1 nguồn thực và 1 kịch bản stress hoặc một tập kiểm tra ngoài 
+miền khi có cơ sở; mô tả rõ nhãn thật/nhãn giả lập. 
+2. Chia train/validation/test theo entity/case/time phù hợp; tuyệt đối không dùng test để 
+chọn tham số. 
+3. Seeds 1001–1010 cho các thành phần ngẫu nhiên; báo mean, SD, 95% CI n ếu tính 
+đúng đơn vị độc lập; p95/p99 latency khi đủ mẫu. 
+4. Ablation từng thành phần mới; sweep tham số, missing/noise/drift/budget; thống kê 
+khi vượt tính toán có thể báo CI bootstrap thay vì p-value tùy tiện. 
+5. Công bố hardware, OS, RAM, JDK/Python, repo commit, package versions, th ời 
+gian chạy, chi phí ước tính. 
+6. Lưu raw metrics CSV, tất cả cấu hình YAML, logs và hình vẽ; không chỉ chụp bảng 
+kết quả đẹp nhất. 
+
+CSE631 | Đề cương nghiên cứu cho cao học CNTT  •  Trang 9 
+10.4. Bảng và hình cần có 
+Bảng / 
+Hình Nội dung bắt buộc 
+Bảng 1 So sánh công trình liên quan: bài toán, phương pháp, nguồn dữ liệu, hạn 
+chế có căn cứ. 
+Bảng 2 Thông tin dữ liệu: số mẫu, nguồn, nhãn, tập train/test, license, giả định. 
+Bảng 3 Hiệu quả baseline vs proposed; cùng split, seed; mean±SD và runtime. 
+Bảng 4 Ablation & budget/sensitivity; giải thích dấu hiệu không hiệu quả. 
+Hình 1 Kiến trúc và luồng xử lý, các điểm quản trị/governance. 
+Hình 2 Biểu đồ trade-off hoặc error analysis, gắn trục và đơn vị chuẩn. 
+11. Lộ trình học từ đầu đến cuối (12 tuần mẫu) 
+STT Công việc cụ thể Sản phẩm/điểm kiểm tra 
+1 Đọc 3–5 nguồn nền tảng, làm glossary, mô t ả 
+use case và điều kiện dữ liệu. 
+01 trang bài toán, 01 b ảng 
+định nghĩa và danh m ục 
+link DOI. 
+2 Tự dựng ví d ụ có s ố nhỏ; vi ết 
+input/output/constraints; tìm 10 paper gần. 
+Toy có kết quả tính tay, sơ 
+đồ hệ thống và RQ1–RQ3. 
+3 Hoàn chỉnh khảo sát 20 –30 công trình theo 
+phương pháp PRISMA-lite minh bạch. 
+Bảng related work có DOI, 
+gap không suy diễn. 
+4 Tải dữ liệu; kiểm tra license, lược đồ, nhãn; tạo 
+dataset manifest và split. 
+EDA, dataset card, ki ểm 
+tra leakage. 
+5 Tái lập baseline đơn giản và kiểm thử theo ví dụ. Code chạy được, baseline 
+1/2, unit tests. 
+6 Tái l ập baseline g ần nh ất; vi ết benchmark 
+harness thống nhất. 
+Bảng baseline và tài li ệu 
+cấu hình. 
+7 Chốt mô hình/phương pháp mới, mệnh đề đúng 
+và giới hạn. 
+Mã giả chi tiết, complexity 
+hoặc proof v ới 
+assumptions. 
+8 Hiện thực thuật toán và so toy/real data nhỏ. Proposed ch ạy, m ọi 
+assertion và unit test pass. 
+9 Chạy experiments chính, 10 seeds n ếu khả thi, 
+lưu logs. 
+Bảng hi ệu qu ả raw và 
+reproducibility log. 
+
+CSE631 | Đề cương nghiên cứu cho cao học CNTT  •  Trang 10 
+10 Ablation, sensitivity, failure cases, 
+cost/resources. 
+Bảng/hình đ ộ nhạy và 
+threats-to-validity. 
+11 Viết báo cáo khoa học theo cấu trúc IMRaD mở 
+rộng. 
+Draft manuscript, kết luận 
+không vư ợt phạm vi d ữ 
+liệu. 
+12 Peer review mô ph ỏng, audit sources, s ửa 
+code/đồ thị. 
+Bản luận văn/bài báo nháp 
++ repo tái lập đầy đủ. 
+12. Sản phẩm nộp, nghiệm thu và tiêu chí chấm điểm 
+Thành phần Điểm Yêu cầu chấm 
+Phát biểu bài toán, đ ịnh nghĩa, ví 
+dụ 20 Bài toán xác định được biến vào/ra; toy 
+chạy ra kết quả đúng. 
+Tài liệu liên quan và khoảng trống 20 ≥3 nguồn gốc xác th ực, phân tích ch ứ 
+không chỉ liệt kê. 
+Triển khai và baseline 20 Mã có README, tái l ập ≥2 baseline 
+công bằng. 
+Thực nghiệm và đo lường 25 Split đúng, metrics có đơn v ị, ablation, 
+sai số và threat. 
+Trình bày, đạo đức, tái lập 15 Thuyết trình, trích dẫn, license và source 
+manifest. 
+Ngưỡng đề xuất để chấp nhận thành luận văn: (i) một kết quả mới có đối sánh chắc 
+chắn; (ii) dữ liệu đủ căn cứ và ít nhất một stress test; (iii) nêu rõ gi ới hạn; (iv) bộ 
+mã/manifest có thể tái chạy. Để gửi tạp chí quốc tế, cần đọc scope và author guidelines 
+của tạp chí tại thời điểm nộp, không suy từ bài tập lớn thành bảo đảm được nhận đăng. 
+13. Hạn chế, tính hợp lệ và yêu cầu đạo đức nghiên cứu 
+Đa dạng thể loại không nhất thiết là lợi ích thực về hài lòng khách hàng. MovieLens 
+không có dữ liệu giá/đơn hàng; e-commerce là ứng dụng giả định chuyển miền. Bias đo 
+theo exposure s ản phẩm không ph ải demographic fairness. Đ ảm bảo split theo 
+user/time tránh đánh giá sai. 
+• Internal validity: loại trừ leakage, tuning theo test, mapping labels sai, chọn seed tốt 
+nhất. 
+• External validity: dữ liệu mở chỉ đại diện cho nguồn được lấy; không khẳng định áp 
+dụng mọi đơn vị. 
+
+CSE631 | Đề cương nghiên cứu cho cao học CNTT  •  Trang 11 
+• Construct validity: mỗi chỉ tiêu phải đúng đối tượng đo; không tráo tên “fairness”, 
+“privacy”, “SLA” khi chưa định nghĩa. 
+• Statistical validity: nêu đơn v ị lấy mẫu độc lập, phạm vi CI; không tuyên b ố cải 
+thiện có ý nghĩa khi thiếu kiểm định. 
+• Reproducibility and ethics: mã nguồn, version, data license, PII, nguồn trích dẫn và 
+những công cụ hỗ trợ AI nếu có. 
+14. Danh mục tài liệu tham khảo và đường dẫn gốc 
+[1] Rendle, S.; Freudenthaler, C.; Gantner, Z.; Schmidt -Thieme, L. (2009). BPR: 
+Bayesian Personalized Ranking from Implicit Feedback. UAI 2009, PMLR R7, 460 –
+469. https://proceedings.mlr.press/r7/rendle09a.html 
+[2] He, X. et al. (2020). LightGCN: Simplifying and Powering Graph Convolution 
+Network for Recommendation. ACM SIGIR 2020, tr.639 –648, DOI 
+10.1145/3397271.3401063. https://doi.org/10.1145/3397271.3401063 
+[3] Zhao, W. X. et al. (2021). RecBole: Towards a Unified, Comprehensive and 
+Efficient Framework for Recommendation Algorithms. ACM CIKM 2021, DOI 
+10.1145/3459637.3482016. https://doi.org/10.1145/3459637.3482016 
+Nguồn dữ liệu và mã nguồn (theo từng mục trong đề cương): 
+Dataset – MovieLens 100K/1M/32M: https://grouplens.org/datasets/movielens/ 
+Dataset – RecBole packaged datasets: https://github.com/RUCAIBox/RecBole 
+Tool/code – RecBole: https://github.com/RUCAIBox/RecBole 
+Tool/code – LightGCN original: https://github.com/kuandeng/LightGCN 
+Tool/code – scikit-learn: https://scikit-learn.org/stable/ 
+ 

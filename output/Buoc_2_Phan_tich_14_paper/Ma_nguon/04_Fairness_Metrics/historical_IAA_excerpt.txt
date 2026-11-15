@@ -1,0 +1,9 @@
+PROVENANCE: excerpt read through the web, 2026-11-15.
+URL: https://raw.githubusercontent.com/theresiavr/DPFR-recsys-evaluation/main/RecBole/recbole/evaluator/metrics.py
+Context: IAA.get_IAA in the DPFR repository; historical formulation.
+This is NOT the corrected TORS implementation and NOT a complete module.
+
+att = np.zeros_like(pred_rel, dtype='float64')
+att[:,:k] = (k-np.arange(1,k+1))/(k-1)
+
+Editorial observation: the last exposed rank receives zero and k=1 has a zero denominator. See the guide for an independently implemented teaching correction.

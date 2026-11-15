@@ -1,0 +1,1270 @@
+WEB EXTRACT - inspected 2026-11-15 - NOT a full raw source snapshot
+chat-reranking/llm_reranker.py at master · cdiego89phd/chat-reranking · GitHub (https://github.com/cdiego89phd/chat-reranking/blob/master/llm_reranker.py)
+ [wordlim: 200] Crawled: last week; Content type: text/html; Source: open({"ref_id":"https://github.com/cdiego89phd/chat-reranking/blob/master/llm_reranker.py","lineno":null}); Total lines: 1841
+L0: 【0†Skip to content】
+L1: ## Navigation Menu
+L2: 
+L3:   * Products
+L4: 
+L5:     *       * 【1†GitHub Repository hosting, code review, and collaboration】
+L6:       * 【2†Copilot AI coding agent for tasks, projects and automated work】
+L7: 
+L8:     * Build & Ship
+L9:       * 【3†Actions CI/CD and automation】
+L10:       * 【4†Code Quality Quality analysis, fixes, and enforcement】
+L11:       * 【5†Codespaces Cloud development environments】
+L12:     * Secure
+L13:       * 【6†Code Security Vulnerability detection and remediation】
+L14:       * 【7†Secret Protection Secret scanning and leak prevention】
+L15: 
+L16: 【8†All Features】
+L17: 
+L18:   * Developers
+L19: 
+L20:     * Learn
+L21:       * 【9†Documentation†docs.github.com】
+L22:       * 【10†Training†learn.github.com】
+L23:       * 【11†Certifications†learn.github.com】
+L24: 
+L25:     * Build
+L26:       * 【12†Build with Copilot】
+L27:       * 【13†Customize Copilot†docs.github.com】
+L28:       * 【14†Integrations】
+L29:     * Explore
+L30:       * 【15†Trending repos】
+L31:       * 【16†GitHub Sponsors】
+L32:       * 【17†Events】
+L33: 
+L34:     *       * 【18†Changelog Your source for the latest features, improvements, and fixes across GitHub products, all in one place.†github.blog】
+L35: 
+L36:   * Businesses
+L37: 
+L38:     * By Stage
+L39:       * 【19†Enterprises】
+L40:       * 【20†Team】
+L41:       * 【21†Startups】
+L42:       * 【22†Nonprofits】
+L43:     * By Industry
+L44:       * 【23†Healthcare】
+L45:       * 【24†Financial services】
+L46:       * 【25†Manufacturing】
+L47:       * 【26†Government】
+L48:       * 【27†See all industries】
+L49: 
+L50:     * Evaluate GitHub
+L51:       * 【28†Why GitHub】
+L52:       * 【29†Customer Stories】
+L53:       * 【30†Business insights】
+L54:       * 【31†Trust Center】
+L55: 
+L56:     * Add-ons
+L57:       * 【32†GitHub Advanced Security Enterprise-grade code security】
+L58:       * 【33†Copilot for business Enterprise-grade AI features】
+L59:       * 【34†Premium Support Enterprise-grade 24/7 support】
+L60:   * Resources
+L61: 
+L62:     * Learn & Connect
+L63:       * 【9†Documentation†docs.github.com】
+L64:       * 【35†Resource center】
+L65:       * 【36†Blog†github.blog】
+L66:       * 【17†Events & webinars】
+L67:       * 【37†Community Forum】
+L68:       * 【29†Customer Stories】
+L69:       * 【14†Integrations】
+L70: 
+L71:     * Support
+L72:       * 【38†Customer support†help.github.com】
+L73:       * 【10†Training†learn.github.com】
+L74:       * 【39†GitHub Status†www.githubstatus.com】
+L75: 
+L76:     * Company
+L77:       * 【40†About】
+L78:       * 【41†Partners】
+L79:       * 【18†Changelog†github.blog】
+L80:     *       * 【42†GitHub Universe The event for developers, by developers — talks, workshops, and what’s next for GitHub.†githubuniverse.com】
+L81: 
+L82:   * 【43†Pricing】
+L83: 
+L84: Search`/`
+L85: 
+L86: 【44†Sign in】
+L87: 
+L88: 【45†Sign up】
+L89: 
+L90: Appearance settings
+L91: 
+L92: You signed in with another tab or window. Reload to refresh your session. You signed out in another tab or window. Reload to refresh your session. You switched accounts on another tab or window. Reload to refresh your session. Dismiss alert
+L93: 
+L94:   1. 【46†cdiego89phd】
+L95:   2. 【47†chat-reranking】
+L96: ## Repository navigation
+L97: 
+L98:   *   * 【47†Code】
+L99:   * 【48†Issues】
+L100:   * 【49†Pull requests】
+L101:   * 【50†Actions】
+L102:   * 【51†Projects】
+L103:   * 【52†Security and quality】
+L104:   * 【53†Insights】
+L105: 
+L106: More items
+L107: 
+L108: ## Files Expand file tree
+L109: 
+L110: master
+L111: 
+L112: ## Breadcrumbs
+L113: 
+L114:   1. 【54†chat-reranking】
+L115: 
+L116: /
+L117: 
+L118: # llm_reranker.py
+L119: 
+L120: Copy path
+L121: 
+L122: [Input: Go to file]
+L123: 
+L124: Blame More file actions
+L125: 
+L126: Blame More file actions
+L127: 
+L128: ## Latest commit
+L129: 
+L130: 
+L131: 
+L132: ## History
+L133: 
+L134: History
+L135: 
+L136: master
+L137: 
+L138: ## Breadcrumbs
+L139: 
+L140:   1. 【54†chat-reranking】
+L141: 
+L142: /
+L143: 
+L144: # llm_reranker.py
+L145: 
+L146: Copy path
+L147: 
+L148: Top
+L149: ## File metadata and controls
+L150: 
+L151:   * Code
+L152: 
+L153:   * Blame
+L154: 
+L155: 461 lines (394 loc) · 15.7 KB
+L156: 
+L157: 【55†Raw】
+L158: 
+L159: Copy raw file
+L160: 
+L161: Download raw file
+L162: 
+L163: Open symbols panel
+L164: 
+L165: Edit and raw actions
+L166: 
+L167: 1
+L168: 
+L169: 2
+L170: 
+L171: 3
+L172: 
+L173: 4
+L174: 
+L175: 5
+L176: 
+L177: 6
+L178: 
+L179: 7
+L180: 
+L181: 8
+L182: 
+L183: 9
+L184: 
+L185: 10
+L186: 
+L187: 11
+L188: 
+L189: 12
+L190: 
+L191: 13
+L192: 
+L193: 14
+L194: 
+L195: 15
+L196: 
+L197: 16
+L198: 
+L199: 17
+L200: 
+L201: 18
+L202: 
+L203: 19
+L204: 
+L205: 20
+L206: 
+L207: 21
+L208: 
+L209: 22
+L210: 
+L211: 23
+L212: 
+L213: 24
+L214: 
+L215: 25
+L216: 
+L217: 26
+L218: 
+L219: 27
+L220: 
+L221: 28
+L222: 
+L223: 29
+L224: 
+L225: 30
+L226: 
+L227: 31
+L228: 
+L229: 32
+L230: 
+L231: 33
+L232: 
+L233: 34
+L234: 
+L235: 35
+L236: 
+L237: 36
+L238: 
+L239: 37
+L240: 
+L241: 38
+L242: 
+L243: 39
+L244: 
+L245: 40
+L246: 
+L247: 41
+L248: 
+L249: 42
+L250: 
+L251: 43
+L252: 
+L253: 44
+L254: 
+L255: 45
+L256: 
+L257: 46
+L258: 
+L259: 47
+L260: 
+L261: 48
+L262: 
+L263: 49
+L264: 
+L265: 50
+L266: 
+L267: 51
+L268: 
+L269: 52
+L270: 
+L271: 53
+L272: 
+L273: 54
+L274: 
+L275: 55
+L276: 
+L277: 56
+L278: 
+L279: 57
+L280: 
+L281: 58
+L282: 
+L283: 59
+L284: 
+L285: 60
+L286: 
+L287: 61
+L288: 
+L289: 62
+L290: 
+L291: 63
+L292: 
+L293: 64
+L294: 
+L295: 65
+L296: 
+L297: 66
+L298: 
+L299: 67
+L300: 
+L301: 68
+L302: 
+L303: 69
+L304: 
+L305: 70
+L306: 
+L307: 71
+L308: 
+L309: 72
+L310: 
+L311: 73
+L312: 
+L313: 74
+L314: 
+L315: 75
+L316: 
+L317: 76
+L318: 
+L319: 77
+L320: 
+L321: 78
+L322: 
+L323: 79
+L324: 
+L325: 80
+L326: 
+L327: 81
+L328: 
+L329: 82
+L330: 
+L331: 83
+L332: 
+L333: 84
+L334: 
+L335: 85
+L336: 
+L337: 86
+L338: 
+L339: 87
+L340: 
+L341: 88
+L342: 89
+L343: 
+L344: 90
+L345: 
+L346: 91
+L347: 
+L348: 92
+L349: 
+L350: 93
+L351: 
+L352: 94
+L353: 
+L354: 95
+L355: 
+L356: 96
+L357: 
+L358: 97
+L359: 
+L360: 98
+L361: 
+L362: 99
+L363: 
+L364: 100
+L365: 
+L366: 101
+L367: 
+L368: 102
+L369: 
+L370: 103
+L371: 
+L372: 104
+L373: 
+L374: 105
+L375: 
+L376: 106
+L377: 
+L378: 107
+L379: 
+L380: 108
+L381: 
+L382: 109
+L383: 
+L384: 110
+L385: 
+L386: 111
+L387: 
+L388: 112
+L389: 
+L390: 113
+L391: 
+L392: 114
+L393: 
+L394: 115
+L395: 
+L396: 116
+L397: 
+L398: 117
+L399: 
+L400: 118
+L401: 
+L402: 119
+L403: 
+L404: 120
+L405: 
+L406: 121
+L407: 
+L408: 122
+L409: 
+L410: 123
+L411: 
+L412: 124
+L413: 
+L414: 125
+L415: 
+L416: 126
+L417: 
+L418: 127
+L419: 
+L420: 128
+L421: 
+L422: 129
+L423: 
+L424: 130
+L425: 
+L426: 131
+L427: 
+L428: 132
+L429: 
+L430: 133
+L431: 
+L432: 134
+L433: 
+L434: 135
+L435: 
+L436: 136
+L437: 
+L438: 137
+L439: 
+L440: 138
+L441: 
+L442: 139
+L443: 
+L444: 140
+L445: 
+L446: 141
+L447: 
+L448: 142
+L449: 
+L450: 143
+L451: 
+L452: 144
+L453: 
+L454: 145
+L455: 
+L456: 146
+L457: 
+L458: 147
+L459: 
+L460: 148
+L461: 
+L462: 149
+L463: 
+L464: 150
+L465: 
+L466: 151
+L467: 
+L468: 152
+L469: 
+L470: 153
+L471: 
+L472: 154
+L473: 
+L474: 155
+L475: 
+L476: 156
+L477: 
+L478: 157
+L479: 
+L480: 158
+L481: 
+L482: 159
+L483: 
+L484: 160
+L485: 
+L486: 161
+L487: 
+L488: 162
+L489: 
+L490: 163
+L491: 
+L492: 164
+L493: 
+L494: 165
+L495: 
+L496: 166
+L497: 
+L498: 167
+L499: 
+L500: 168
+L501: 
+L502: 169
+L503: 
+L504: 170
+L505: 
+L506: 171
+L507: 
+L508: 172
+L509: 
+L510: 173
+L511: 
+L512: 174
+L513: 
+L514: 175
+L515: 
+L516: 176
+L517: 
+L518: 177
+L519: 
+L520: 178
+L521: 
+L522: 179
+L523: 
+L524: 180
+L525: 
+L526: 181
+L527: 
+L528: 182
+L529: 
+L530: 183
+L531: 
+L532: 184
+L533: 
+L534: 185
+L535: 
+L536: 186
+L537: 
+L538: 187
+L539: 
+L540: 188
+L541: 
+L542: 189
+L543: 
+L544: 190
+L545: 
+L546: 191
+L547: 
+L548: 192
+L549: 193
+L550: 
+L551: 194
+L552: 
+L553: 195
+L554: 
+L555: 196
+L556: 
+L557: 197
+L558: 
+L559: 198
+L560: 
+L561: 199
+L562: 
+L563: 200
+L564: 
+L565: 201
+L566: 
+L567: 202
+L568: 
+L569: 203
+L570: 
+L571: 204
+L572: 
+L573: 205
+L574: 
+L575: 206
+L576: 
+L577: 207
+L578: 
+L579: 208
+L580: 
+L581: 209
+L582: 
+L583: 210
+L584: 
+L585: 211
+L586: 
+L587: 212
+L588: 
+L589: 213
+L590: 
+L591: 214
+L592: 
+L593: 215
+L594: 
+L595: 216
+L596: 
+L597: 217
+L598: 
+L599: 218
+L600: 
+L601: 219
+L602: 
+L603: 220
+L604: 
+L605: 221
+L606: 
+L607: 222
+L608: 
+L609: 223
+L610: 
+L611: 224
+L612: 
+L613: 225
+L614: 
+L615: 226
+L616: 
+L617: 227
+L618: 
+L619: 228
+L620: 
+L621: 229
+L622: 
+L623: 230
+L624: 
+L625: 231
+L626: 
+L627: 232
+L628: 
+L629: 233
+L630: 
+L631: 234
+L632: 
+L633: 235
+L634: 
+L635: 236
+L636: 
+L637: 237
+L638: 
+L639: 238
+L640: 
+L641: 239
+L642: 
+L643: 240
+L644: 
+L645: 241
+L646: 
+L647: 242
+L648: 
+L649: 243
+L650: 
+L651: 244
+L652: 
+L653: 245
+L654: 
+L655: 246
+L656: 
+L657: 247
+L658: 
+L659: 248
+L660: 
+L661: 249
+L662: 
+L663: 250
+L664: 
+L665: 251
+L666: 
+L667: 252
+L668: 
+L669: 253
+L670: 
+L671: 254
+L672: 
+L673: 255
+L674: 
+L675: 256
+L676: 
+L677: 257
+L678: 
+L679: 258
+L680: 
+L681: 259
+L682: 
+L683: 260
+L684: 
+L685: 261
+L686: 
+L687: 262
+L688: 
+L689: 263
+L690: 
+L691: 264
+L692: 
+L693: 265
+L694: 
+L695: 266
+L696: 
+L697: 267
+L698: 
+L699: 268
+L700: 
+L701: 269
+L702: 
+L703: 270
+L704: 
+L705: 271
+L706: 
+L707: 272
+L708: 
+L709: 273
+L710: 
+L711: 274
+L712: 
+L713: 275
+L714: 
+L715: 276
+L716: 
+L717: 277
+L718: 
+L719: 278
+L720: 
+L721: 279
+L722: 
+L723: 280
+L724: 
+L725: 281
+L726: 
+L727: 282
+L728: 
+L729: 283
+L730: 
+L731: 284
+L732: 
+L733: 285
+L734: 
+L735: 286
+L736: 
+L737: 287
+L738: 
+L739: 288
+L740: 
+L741: 289
+L742: 
+L743: 290
+L744: 
+L745: 291
+L746: 
+L747: 292
+L748: 
+L749: 293
+L750: 
+L751: 294
+L752: 295
+L753: 
+L754: 296
+L755: 
+L756: 297
+L757: 
+L758: 298
+L759: 
+L760: 299
+L761: 
+L762: 300
+L763: 
+L764: 301
+L765: 
+L766: 302
+L767: 
+L768: 303
+L769: 
+L770: 304
+L771: 
+L772: 305
+L773: 
+L774: 306
+L775: 
+L776: 307
+L777: 
+L778: 308
+L779: 
+L780: 309
+L781: 
+L782: 310
+L783: 
+L784: 311
+L785: 
+L786: 312
+L787: 
+L788: 313
+L789: 
+L790: 314
+L791: 
+L792: 315
+L793: 
+L794: 316
+L795: 
+L796: 317
+L797: 
+L798: 318
+L799: 
+L800: 319
+L801: 
+L802: 320
+L803: 
+L804: 321
+L805: 
+L806: 322
+L807: 
+L808: 323
+L809: 
+L810: 324
+L811: 
+L812: 325
+L813: 
+L814: 326
+L815: 
+L816: 327
+L817: 
+L818: 328
+L819: 
+L820: 329
+L821: 
+L822: 330
+L823: 
+L824: 331
+L825: 
+L826: 332
+L827: 
+L828: 333
+L829: 
+L830: 334
+L831: 
+L832: 335
+L833: 
+L834: 336
+L835: 
+L836: 337
+L837: 
+L838: 338
+L839: 
+L840: 339
+L841: 
+L842: 340
+L843: 
+L844: 341
+L845: 
+L846: 342
+L847: 
+L848: 343
+L849: 
+L850: 344
+L851: 
+L852: 345
+L853: 
+L854: 346
+L855: 
+L856: 347
+L857: 
+L858: 348
+L859: 
+L860: 349
+L861: 
+L862: 350
+L863: 
+L864: 351
+L865: 
+L866: 352
+L867: 
+L868: 353
+L869: 
+L870: 354
+L871: 
+L872: 355
+L873: 
+L874: 356
+L875: 
+L876: 357
+L877: 
+L878: 358
+L879: 
+L880: 359
+L881: 
+L882: 360
+L883: 
+L884: 361
+L885: 
+L886: 362
+L887: 
+L888: 363
+L889: 
+L890: 364
+L891: 
+L892: 365
+L893: 
+L894: 366
+L895: 
+L896: 367
+L897: 
+L898: 368
+L899: 
+L900: 369
+L901: 
+L902: 370
+L903: 
+L904: 371
+L905: 
+L906: 372
+L907: 
+L908: 373
+L909: 
+L910: 374
+L911: 
+L912: 375
+L913: 
+L914: 376
+L915: 
+L916: 377
+L917: 
+L918: 378
+L919: 
+L920: 379
+L921: 
+L922: 380
+L923: 
+L924: 381
+L925: 
+L926: 382
+L927: 
+L928: 383
+L929: 
+L930: 384
+L931: 
+L932: 385
+L933: 
+L934: 386
+L935: 
+L936: 387
+L937: 
+L938: 388
+L939: 
+L940: 389
+L941: 
+L942: 390
+L943: 
+L944: 391
+L945: 
+L946: 392
+L947: 
+L948: 393
+L949: 
+L950: 394
+L951: 
+L952: 395
+L953: 
+L954: 396
+L955: 397
+L956: 
+L957: 398
+L958: 
+L959: 399
+L960: 
+L961: 400
+L962: 
+L963: 401
+L964: 
+L965: 402
+L966: 
+L967: 403
+L968: 
+L969: 404
+L970: 
+L971: 405
+L972: 
+L973: 406
+L974: 
+L975: 407
+L976: 
+L977: 408
+L978: 
+L979: 409
+L980: 
+L981: 410
+L982: 
+L983: 411
+L984: 
+L985: 412
+L986: 
+L987: 413
+L988: 
+L989: 414
+L990: 
+L991: 415
+L992: 
+L993: 416
+L994: 
+L995: 417
+L996: 
+L997: 418
+L998: 
+L999: 419
+L1000: 
+L1001: 420
+L1002: 
+L1003: 421
+L1004: 
+L1005: 422
+L1006: 
+L1007: 423
+L1008: 
+L1009: 424
+L1010: 
+L1011: 425
+L1012: 
+L1013: 426
+L1014: 
+L1015: 427
+L1016: 
+L1017: 428
+L1018: 
+L1019: 429
+L1020: 
+L1021: 430
+L1022: 
+L1023: 431
+L1024: 
+L1025: 432
+L1026: 
+L1027: 433
+L1028: 
+L1029: 434
+L1030: 
+L1031: 435
+L1032: 
+L1033: 436
+L1034: 
+L1035: 437
+L1036: 
+L1037: 438
+L1038: 
+L1039: 439
+L1040: 
+L1041: 440
+L1042: 
+L1043: 441
+L1044: 
+L1045: 442
+L1046: 
+L1047: 443
+L1048: 
+L1049: 444
+L1050: 
+L1051: 445
+L1052: 
+L1053: 446
+L1054: 
+L1055: 447
+L1056: 
+L1057: 448
+L1058: 
+L1059: 449
+L1060: 
+L1061: 450
+L1062: 
+L1063: 451
+L1064: 
+L1065: 452
+L1066: 
+--------------------------------------------------------------------------------
+GitHub - cdiego89phd/chat-reranking · GitHub (https://github.com/cdiego89phd/chat-reranking)
+ [wordlim: 200] Crawled: 6 days ago; Content type: text/html; Source: open({"ref_id":"https://github.com/cdiego89phd/chat-reranking","lineno":null}); Total lines: 196
+L0: 【0†Skip to content】
+L1: ## Navigation Menu
+L2: 
+L3:   * Products
+L4: 
+L5:     *       * 【1†GitHub Repository hosting, code review, and collaboration】
+L6:       * 【2†Copilot AI coding agent for tasks, projects, and automated work】
+L7: 
+L8:     * Build & Ship
+L9:       * 【3†Actions CI/CD and automation】
+L10:       * 【4†Code Quality Quality analysis, fixes, and enforcement】
+L11:       * 【5†Codespaces Cloud development environments】
+L12:     * Secure
+L13:       * 【6†Code Security Vulnerability detection and remediation】
+L14:       * 【7†Secret Protection Secret scanning and leak prevention】
+L15: 
+L16: 【8†All Features】
+L17: 
+L18:   * Developers
+L19: 
+L20:     * Learn
+L21:       * 【9†Documentation†docs.github.com】
+L22:       * 【10†Training†learn.github.com】
+L23:       * 【11†Certifications†learn.github.com】
+L24: 
+L25:     * Build
+L26:       * 【12†Build with Copilot】
+L27:       * 【13†Customize Copilot†docs.github.com】
+L28:       * 【14†Integrations】
+L29:     * Explore
+L30:       * 【15†Trending repos】
+L31:       * 【16†GitHub Sponsors】
+L32:       * 【17†Developer articles】
+L33: 
+L34:     *       * 【18†Changelog Your source for the latest features, improvements, and fixes across GitHub products, all in one place.†github.blog】
+L35: 
+L36:   * Businesses
+L37: 
+L38:     * By Stage
+L39:       * 【19†Enterprises】
+L40:       * 【20†Team】
+L41:       * 【21†Startups】
+L42:       * 【22†Nonprofits】
+L43:     * By Industry
+L44:       * 【23†Healthcare】
+L45:       * 【24†Financial services】
+L46:       * 【25†Manufacturing】
+L47:       * 【26†Government】
+L48:       * 【27†See all industries】
+L49: 
+L50:     * Evaluate GitHub
+L51:       * 【28†Why GitHub】
+L52:       * 【29†Customer Stories】
+L53:       * 【30†Business insights】
+L54:       * 【31†Trust Center】
+L55: 
+L56:     * Add-ons
+L57:       * 【32†GitHub Advanced Security Enterprise-grade code security】
+L58:       * 【33†Copilot for business Enterprise-grade AI features】
+L59:       * 【34†Premium Support Enterprise-grade 24/7 support】
+L60:   * Resources
+L61: 
+L62:     * Learn & Connect
+L63:       * 【9†Documentation†docs.github.com】
+L64:       * 【35†Resource center】
+L65:       * 【36†Blog†github.blog】
+L66:       * 【37†Events & webinars】
+L67:       * 【38†Community Forum】
+L68:       * 【29†Customer Stories】
+L69:       * 【14†Integrations】
+L70: 
+L71:     * Support
+L72:       * 【39†Customer support†help.github.com】
+L73:       * 【10†Training†learn.github.com】
+L74:       * 【40†GitHub Status†www.githubstatus.com】
+L75: 
+L76:     * Company
+L77:       * 【41†About】
+L78:       * 【42†Partners】
+L79:       * 【18†Changelog†github.blog】
+L80:     *       * 【43†GitHub Universe The event for developers, by developers — talks, workshops, and what’s next for GitHub.†githubuniverse.com】
+L81: 
+L82:   * 【44†Pricing】
+L83: 
+L84: Search`/`
+L85: 
+L86: 【45†Sign in】
+L87: 
+L88: 【46†Sign up】
+L89: 
+L90: Appearance settings
+L91: 
+L92: You signed in with another tab or window. Reload to refresh your session. You signed out in another tab or window. Reload to refresh your session. You switched accounts on another tab or window. Reload to refresh your session. Dismiss alert
+L93: 
+L94:   1. 【47†cdiego89phd】
+L95:   2. 【48†chat-reranking】
+L96: ## Repository navigation
+L97: 
+L98:   *   * 【48†Code】
+L99:   * 【49†Issues】
+L100:   * 【50†Pull requests】
+L101:   * 【51†Actions】
+L102:   * 【52†Projects】
+L103:   * 【53†Security and quality】
+L104:   * 【54†Insights】
+L105: 
+L106: More items
+L107: 
+L108: 【55†Image: cdiego89phd†avatars.githubusercontent.com】
+L109: 
+L110: 【48†chat-reranking】
+L111: 
+L112: Public
+L113: 
+L114:   * 【56†Notifications】You must be signed in to change notification settings
+L115:   * 【56†Fork 0 (0)】
+L116:   * 【56†Star 6 (6)】You must be signed in to star a repository
+L117: 
+L118: ## About
+L119: 
+L120: No description, website, or topics provided.
+L121: 
+L122: 【57†Activity】
+L123: ### Stars
+L124: 
+L125: 6 stars
+L126: 
+L127: ### Watchers
+L128: 
+L129: 1 watching
+L130: 
+L131: ### Forks
+L132: 
+L133: 【58†0 forks】
+L134: 
+L135: 【59†Report repository】
+L136: 
+L137: master
+L138: 
+L139: 【60†Branches】【61†Tags】
+L140: 
+L141: [Input: Go to file]
+L142: 
+L143: Go to file
+L144: 
+L145: Code
+L146: 
+L147: Open more actions menu
+L148: 
+L149: ## Latest commit
+L150: 
+L151: 
+L152: 
+L153: ## History
+L154: 
+L155: 28 Commits
+L156: ## Folders and files
+L157: Name  | Name  | Last commit message  | Last commit date
+L158: --- | --- | --- | ---
+L159: 【62†notebooks】  | 【62†notebooks】  |    |
+L160: 【63†prompts】  | 【63†prompts】  |    |
+L161: 【64†chatgpt_serendipity.py】  | 【64†chatgpt_serendipity.py】  |    |
+L162: 【65†llm_reranker.py】  | 【65†llm_reranker.py】  |    |
+L163: 【66†prepare_folds.py】  | 【66†prepare_folds.py】  |    |
+L164: 【67†prepare_ml100k_features.py】  | 【67†prepare_ml100k_features.py】  |    |
+L165: 【68†utils_llama2_hf.py】  | 【68†utils_llama2_hf.py】  |    |
+L166: 【69†utils_llama2_meta.py】  | 【69†utils_llama2_meta.py】  |    |
+L167: ## About
+L168: 
+L169: No description, website, or topics provided.
+L170: 
+L171: 【57†Activity】
+L172: 
+L173: ### Stars
+L174: 
+L175: 6 stars
+L176: 
+L177: ### Watchers
+L178: 
+L179: 1 watching
+L180: 
+L181: ### Forks
+L182: 
+L183: 【58†0 forks】
+L184: 
+L185: 【59†Report repository】
+L186: 
+L187: ## Releases
+L188: 
+L189: ## Packages
+L190: 
+L191: ## Contributors
+L192: 
+L193: ## Languages
+L194: 
+L195: You can’t perform that action at this time.
+

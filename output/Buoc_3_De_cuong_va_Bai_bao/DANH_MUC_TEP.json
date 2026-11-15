@@ -1,0 +1,292 @@
+[
+  {
+    "file": "01_De_cuong_Luan_van_Thac_si.docx",
+    "bytes": 46068,
+    "sha256": "5dbc1584c34e641dcee7bab35f7debd90454844b36f553a837c01eac8bf447ff"
+  },
+  {
+    "file": "02_Du_thao_Bai_bao_WCR.docx",
+    "bytes": 208669,
+    "sha256": "e9ccfb93a798750720c0ddba745f9fd4d0686326769f26464231f6e9d8abc5fc"
+  },
+  {
+    "file": "Kiem_tra/bound_comparison.pdf",
+    "bytes": 17789,
+    "sha256": "a02328fc426c76bdfbf5df7fd3875ac5c870e82023286572c22e130ca601f7bf"
+  },
+  {
+    "file": "Kiem_tra/bound_comparison.png",
+    "bytes": 143130,
+    "sha256": "b4f13b4fd66ab1c96c2a87ca3cf7bcc91c0a5218e2cfa14e8453c62dc60c2cd3"
+  },
+  {
+    "file": "Kiem_tra/kiem_tra_tai_lieu.json",
+    "bytes": 6280,
+    "sha256": "2aa274fef22ce60fe73412aa2b221222f7699f1db8db217abdeebe248d9a398b"
+  },
+  {
+    "file": "Kiem_tra/simulation_results.csv",
+    "bytes": 6375,
+    "sha256": "d70ebc1ce602d8f32bc05042b39f395bf8008eec40fb461fce7a0c9976ad857c"
+  },
+  {
+    "file": "Kiem_tra/simulation_results.json",
+    "bytes": 518126,
+    "sha256": "77b89f1a454e1d255626b72113de08fbb0e557faa5afa4f1a426514dfeece9fb"
+  },
+  {
+    "file": "Kiem_tra/simulation_run.txt",
+    "bytes": 694,
+    "sha256": "81a02d7ee7cc016f853fddede65e2c836e6afb51ae8636e86dbb6194d2b629d7"
+  },
+  {
+    "file": "Kiem_tra/unit_tests.txt",
+    "bytes": 1863,
+    "sha256": "0988d72b6d82616a2dcf44214eb43ca92eaf701c44118610036cdb788fb0b54a"
+  },
+  {
+    "file": "Mo_phong/core.py",
+    "bytes": 10530,
+    "sha256": "d9b91a175568c81dd16c9ac2b66747c365bf435c12d4c2cf74e11f1e00e499f4"
+  },
+  {
+    "file": "Mo_phong/milp_backend.py",
+    "bytes": 4394,
+    "sha256": "38b419d90e304b113b927d6937d7dec3b88b9c3afc83c8e122311f369a7c9ef6"
+  },
+  {
+    "file": "Mo_phong/requirements.txt",
+    "bytes": 27,
+    "sha256": "86e921c6127d8f07900d23c9e24ef4ad0ce7f68aec2ab814c6df2a3953d3b28b"
+  },
+  {
+    "file": "Mo_phong/run_study.py",
+    "bytes": 20565,
+    "sha256": "822b32fa552b698aef6ba05da0cabba4d45acd400e912bfc06a48ba746ba34b0"
+  },
+  {
+    "file": "Mo_phong/test_core.py",
+    "bytes": 6618,
+    "sha256": "573a14414a44190e91cdb5b1f08f8408e0b43cab961770e53860f627b8147f8c"
+  },
+  {
+    "file": "Nguon_bien_soan/01_PFA_da_doc.txt",
+    "bytes": 22731,
+    "sha256": "dc5f0a116a6bc08ad8ee1cf5161c79c52c60b9cb89eecd39bbe45198234b0dcc"
+  },
+  {
+    "file": "Nguon_bien_soan/02_Behind_ReRank_da_doc.txt",
+    "bytes": 23655,
+    "sha256": "e320d267860d5b6ce3bd419c4606522057dc45581eeb2546375a6d176b79871e"
+  },
+  {
+    "file": "Nguon_bien_soan/03_ADF_da_doc.txt",
+    "bytes": 23699,
+    "sha256": "ee5bef34acd6813c38c4f76fff62ad49c32b6f2e61dd1a71f5b623bd35735254"
+  },
+  {
+    "file": "Nguon_bien_soan/04_Fairness_Metrics_da_doc.txt",
+    "bytes": 23745,
+    "sha256": "f6d8acda4600a8459c7382962140221de26281588cb8289f610347b7ce1df39b"
+  },
+  {
+    "file": "Nguon_bien_soan/05_VRisker_da_doc.txt",
+    "bytes": 24975,
+    "sha256": "bfd4587ac0f5821ee944fbbd273921dcb49331d5eb3d8e2f25382fd19d9fb044"
+  },
+  {
+    "file": "Nguon_bien_soan/06_CatDive_da_doc.txt",
+    "bytes": 23447,
+    "sha256": "005a58cfdf5e268a85407134f578097d69a6caa66d04df2802e6ee78c8c78136"
+  },
+  {
+    "file": "Nguon_bien_soan/07_IPS_LAE_da_doc.txt",
+    "bytes": 21740,
+    "sha256": "e2a003722ebc83c6517d4e8794b5c0896302096496e8f3276e3303ceea9d2ae1"
+  },
+  {
+    "file": "Nguon_bien_soan/08_LLM_Reranking_da_doc.txt",
+    "bytes": 23965,
+    "sha256": "9e9c6d0d1ef8f04b121b35f0a592cfe7dc2e9004708186636025160b0998815a"
+  },
+  {
+    "file": "Nguon_bien_soan/09_SCRUF_D_da_doc.txt",
+    "bytes": 23465,
+    "sha256": "28ed98ac18b5f871b66e0d1baeb15cc3fec7d146b9e26819ffedde160f40c1af"
+  },
+  {
+    "file": "Nguon_bien_soan/10_ElasticRank_da_doc.txt",
+    "bytes": 22434,
+    "sha256": "72ca5ef70d85a01ca9b2f587fe6a501395f59814e206667ffbd07edd9461ee8b"
+  },
+  {
+    "file": "Nguon_bien_soan/11_SMMR_da_doc.txt",
+    "bytes": 23993,
+    "sha256": "773049244cb8bf53a87fcea06e1570c5605e44484ab3975d6c784a97f163929e"
+  },
+  {
+    "file": "Nguon_bien_soan/12_FairDiverse_da_doc.txt",
+    "bytes": 23496,
+    "sha256": "b3a98391568f7a139737a3c08ad3bacf8ed2fc59915d9948668f6a11f4520591"
+  },
+  {
+    "file": "Nguon_bien_soan/13_DPFR_da_doc.txt",
+    "bytes": 23252,
+    "sha256": "ac4ce299133bbe4c4c1a6697af2c8b2c0ac1735dde26c6401da363b1d3c2d770"
+  },
+  {
+    "file": "Nguon_bien_soan/14_FairDual_da_doc.txt",
+    "bytes": 24531,
+    "sha256": "e10f2b4ec09b0c4bce3b68e1c41564cc1df6f56f44c1690e7aede251b2817830"
+  },
+  {
+    "file": "Nguon_bien_soan/KE_HOACH_VA_DAC_TA.md",
+    "bytes": 4495,
+    "sha256": "05aba721d6b1d854705403eef02df4e878f90042a467109cfe5c117373ba11e3"
+  },
+  {
+    "file": "Nguon_bien_soan/Mau-trinh-bay-de-cuong-LV-PH-2022.doc",
+    "bytes": 76800,
+    "sha256": "388ab1d641962d8bd2c105b716390ad3123d26b59f29663d0048360e1cdb8e58"
+  },
+  {
+    "file": "Nguon_bien_soan/PROMPT_TONG_HOP_BUOC_3.md",
+    "bytes": 2765,
+    "sha256": "e4373fcff91ffb6c494c8635838178b1c2359978dd7c294430685d25b4c6ceff"
+  },
+  {
+    "file": "Nguon_bien_soan/de_cuong.md",
+    "bytes": 12964,
+    "sha256": "484f838acbc1b1b2dcf30c33452a2bafe1e5a2e238f8dd3def7a087a83563231"
+  },
+  {
+    "file": "Nguon_bien_soan/docx_renderer.py",
+    "bytes": 6129,
+    "sha256": "a38cc1863a8a59fc2c7ebddb798f4d76f70c437bc0d0a43a8c8a6eff8f682099"
+  },
+  {
+    "file": "Nguon_bien_soan/kiem_tra_tai_lieu.py",
+    "bytes": 6763,
+    "sha256": "b58432e1fbaef3f26924fb6842385784362072eae88fce690bdb46f93c5dcdc7"
+  },
+  {
+    "file": "Nguon_bien_soan/manifest_14_word.json",
+    "bytes": 18441,
+    "sha256": "a68faa252c361d8be6c6561a01ac3e0d78edc3ca03f9ba946cd087d98ce66c89"
+  },
+  {
+    "file": "Nguon_bien_soan/mau_de_cuong_da_doc.docx",
+    "bytes": 8988,
+    "sha256": "9249fd7f79639d3972848f8f12af0f528a3630b0bbbeda062df1d747b190fae8"
+  },
+  {
+    "file": "Nguon_bien_soan/mau_de_cuong_da_doc.txt",
+    "bytes": 14841,
+    "sha256": "12cb556c148f3df08728e9512005dd83a90c46597b4dd6beec6f61294794c193"
+  },
+  {
+    "file": "Nguon_bien_soan/paper_experiments.md",
+    "bytes": 21989,
+    "sha256": "51e7603751f52b93c69fb09c37b9c146ad073f17b9e4654f828563752bbb6089"
+  },
+  {
+    "file": "Nguon_bien_soan/paper_intro.md",
+    "bytes": 15013,
+    "sha256": "531801889cd499068db176eb89a0ee629d76c0f3bf656a9f4a67210afda595d5"
+  },
+  {
+    "file": "Nguon_bien_soan/paper_method.md",
+    "bytes": 22773,
+    "sha256": "bacd8911151d5f4e0624144a4d8213888793659d41da61d63673aaad5ac88a5c"
+  },
+  {
+    "file": "Nguon_bien_soan/references.json",
+    "bytes": 15812,
+    "sha256": "418818368a5f35858c76f360950558c5bb7c9ac0663cc730f0a03ec67a1200ca"
+  },
+  {
+    "file": "Nguon_bien_soan/tao_tai_lieu.py",
+    "bytes": 13805,
+    "sha256": "0bf6cde80b1a983b11f98c60def81b7cd1c7deedd69c7d8b5aeb260c9491a302"
+  },
+  {
+    "file": "Nguon_bien_soan/ve_ket_qua.py",
+    "bytes": 1220,
+    "sha256": "81b6147d4c4a9c41814217525d87c35d012d9e8ec8dbbc49b29c6777f68e447c"
+  },
+  {
+    "file": "README.md",
+    "bytes": 7295,
+    "sha256": "899c0ce4897071e22dc1eb965eba1beff869582c1d120814c0798d8dde7fe70e"
+  },
+  {
+    "file": "Tai_lieu_dau_vao_14_Word/01_PFA.docx",
+    "bytes": 50006,
+    "sha256": "65117b52ec3fe574a53ee45104811c01803d2ca6162c87c9d1ecc8a8c7ac848c"
+  },
+  {
+    "file": "Tai_lieu_dau_vao_14_Word/02_Behind_ReRank.docx",
+    "bytes": 49652,
+    "sha256": "47bbd0745035d05d479379a538f23f9c1558e186779ebe7c85aeede5be13f691"
+  },
+  {
+    "file": "Tai_lieu_dau_vao_14_Word/03_ADF.docx",
+    "bytes": 49651,
+    "sha256": "05b1a1c1ef5de6f52865fb2bbd4395ff610d3c83e6847e73617d193868180ad3"
+  },
+  {
+    "file": "Tai_lieu_dau_vao_14_Word/04_Fairness_Metrics.docx",
+    "bytes": 49916,
+    "sha256": "8a595d928e1c69233b6f7a9d0175b01c413d671ac3d6034d2e6794dc86c0e4c4"
+  },
+  {
+    "file": "Tai_lieu_dau_vao_14_Word/05_VRisker.docx",
+    "bytes": 50954,
+    "sha256": "d91ec618b681fee25a08ce504d635e83e54a920a1c17b566e8e87b4e63ddc8d7"
+  },
+  {
+    "file": "Tai_lieu_dau_vao_14_Word/06_CatDive.docx",
+    "bytes": 49997,
+    "sha256": "3879451542bea267ab1fdcb847e35b0abd51ceae30fd225da38fbc93a3462a61"
+  },
+  {
+    "file": "Tai_lieu_dau_vao_14_Word/07_IPS_LAE.docx",
+    "bytes": 49957,
+    "sha256": "deb614bb593762363c7ed89b9341c0cbf34f24560edc46a7edd242f2556e342c"
+  },
+  {
+    "file": "Tai_lieu_dau_vao_14_Word/08_LLM_Reranking.docx",
+    "bytes": 50161,
+    "sha256": "98d486d4a97f5209e0bf85df39d780bb668d2f895cfd1ee7842f2bf5c631577b"
+  },
+  {
+    "file": "Tai_lieu_dau_vao_14_Word/09_SCRUF_D.docx",
+    "bytes": 49811,
+    "sha256": "02adde3a53c6cc229538bae3ee9acacf1bc42f78a104e335427107373b4a41bc"
+  },
+  {
+    "file": "Tai_lieu_dau_vao_14_Word/10_ElasticRank.docx",
+    "bytes": 49694,
+    "sha256": "c41dd20e83ae8076a014118e16c1ec4cebe05293126e905992d949a7e9db9564"
+  },
+  {
+    "file": "Tai_lieu_dau_vao_14_Word/11_SMMR.docx",
+    "bytes": 50405,
+    "sha256": "5e5105320b46df3dc183254f5e97b9047ebda933dbd1ae8d4e70e4de1e576ad0"
+  },
+  {
+    "file": "Tai_lieu_dau_vao_14_Word/12_FairDiverse.docx",
+    "bytes": 49907,
+    "sha256": "48b41cb4fadd3cd72d7550051399b6e5b095ccd3a43b5b9f81a532e837ddebf1"
+  },
+  {
+    "file": "Tai_lieu_dau_vao_14_Word/13_DPFR.docx",
+    "bytes": 50045,
+    "sha256": "5d8ad4b253e8ad743bf2083a64e9ffba5d2902760857bc08f2e3360398be5b49"
+  },
+  {
+    "file": "Tai_lieu_dau_vao_14_Word/14_FairDual.docx",
+    "bytes": 50705,
+    "sha256": "d5b3a22d95773ac689e081b6a1ed49f3e313f51daf26b8a8eb184698ad59e364"
+  }
+]

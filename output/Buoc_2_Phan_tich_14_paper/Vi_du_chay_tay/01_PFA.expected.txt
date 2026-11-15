@@ -1,0 +1,6 @@
+base top2: [[0, 1], [0, 1]] NDCG=0.806574
+adjusted top2: [[0, 2], [2, 3]] NDCG=0.613147
+provider shares: [0.306574, 0.5, 0.193426]
+KL base=1.098612 adjusted=0.071805
+inter=0.076816 intra=0.070171 calibration=-0.075181 sum=0.071805
+soft swap alpha=0.147584 outputs=(0.770483, 0.629517)

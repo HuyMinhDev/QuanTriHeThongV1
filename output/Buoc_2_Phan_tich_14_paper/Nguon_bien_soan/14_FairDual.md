@@ -1,0 +1,219 @@
+# 14. FairDual: vì sao tối ưu fairness theo mini-batch có thể lệch mục tiêu
+
+## 1. Danh tính bài báo và giới hạn của tài liệu
+
+Chen Xu, Yuxin Li, Wenjie Wang, Liang Pang, Jun Xu và Tat-Seng Chua, **Bridging Jensen Gap for Max-Min Group Fairness Optimization in Recommendation**, ICLR 2025. Bài chính thức: https://proceedings.iclr.cc/paper_files/paper/2025/hash/184a03a3ad07e8897c62461c02634b02-Abstract-Conference.html. Bản đọc https://arxiv.org/html/2502.09319v1. Code https://github.com/XuChen0427/FairDual. Kiểm tra ngày 15/11/2026; không tự gán DOI cho conference paper khi chưa xác minh.
+
+FairDual là phương pháp điều chỉnh **huấn luyện**, không phải một reranker thuần hậu xử lý. Giá trị đối với đề tài nằm ở cách nhìn fairness toàn hệ thống, sai lệch khi chia batch và tối ưu trọng số nhóm bằng biến đối ngẫu. Nếu chuyển ý tưởng sang BPR reranking thì đó là một biến thể cần chứng minh và thực nghiệm riêng.
+
+Tài liệu phân biệt kết quả tác giả, phép kiểm tra đại số và đề xuất người biên soạn. Đã đọc các phần công thức chính, Phụ lục F–G, thực nghiệm và đường gọi huấn luyện trong `train.py`. Chưa chạy mô hình Llama hay tái lập benchmark chính thức. Toy nhỏ chỉ minh họa Jensen và weighted loss.
+
+## 2. Học trước những gì và nên đọc theo thứ tự nào
+
+Người mới nên bắt đầu bằng loss và gradient descent: một loss lớn biểu diễn dự báo kém; cập nhật tham số để giảm loss. Sau đó học batch là một tập nhỏ ví dụ, group là một tập item có đặc tính chung, còn worst-group objective quan tâm nhóm được phục vụ kém nhất.
+
+Tiếp theo học hàm lồi và bất đẳng thức Jensen. Với f(x)=x², trung bình của f(x) thường khác f của trung bình. Chẳng hạn x=0 và x=4 cho trung bình x là 2, f(2)=4; trung bình [0²,4²] là 8. Nếu mục tiêu phụ thuộc f của thống kê toàn bộ dữ liệu, thay bằng trung bình f trên từng batch có thể tối ưu một hàm khác.
+
+Đọc Mục 3–4 trước để biết vấn đề, rồi xem Algorithm 1 và công thức trọng số (7). Khi hiểu vì sao cần giữ trạng thái giữa các batch, đọc phần đối ngẫu Mục 5.1 và Phụ lục F. Phụ lục G nên đọc cùng giả định và kiểm tra đơn vị của bound, không chỉ ghi nhớ tốc độ hội tụ trong abstract.
+
+## 3. Bài toán và đầu vào–đầu ra
+
+Đầu vào gồm tương tác user–item, mô hình dự đoán, nhóm item, batch size, ngân sách fairness và cách lấy mẫu. Đầu ra là tham số mô hình đã được học với trọng số phụ thuộc nhóm. Khi phục vụ, mô hình dùng tham số đó để tạo ranking; khác với việc cố định score rồi đổi thứ tự item sau cùng.
+
+Ở công thức (1), tác giả đặt giới hạn cho loss của nhóm tệ nhất sau chuẩn hóa. Trong diễn giải utility, loss lớn tương ứng utility thấp. Đổi dấu giữa utility và loss là nguồn dễ nhầm: “tăng nhóm yếu” có thể được viết thành tăng min utility hoặc giảm max loss. Không được vừa dùng một đại lượng vừa đảo ý nghĩa mà không thay dấu.
+
+Item có thể thuộc nhiều nhóm. Hệ số n_i chia phần đóng góp qua các nhóm để tránh một item nhiều nhãn tự tạo thêm tổng khối lượng. Nếu item thuộc A và B, một đơn vị được phân 0,5/0,5 khi row-normalize. Không đồng nhất quy tắc này với việc đếm một item nguyên vẹn cho mọi genre trong metric khác.
+
+## 4. Công trình trước và khoảng trống có điều kiện
+
+DRO và S-DRO tìm cách cải thiện trường hợp yếu hoặc chống dịch chuyển phân phối. Các phương pháp reweighting tĩnh gán trọng số từ popularity; phương pháp động thay trọng số theo trạng thái học. FairDual phân tích sai lệch do mục tiêu group max-min không cộng tuyến tính rồi dùng đối ngẫu để tính trọng số trên lịch sử batch.
+
+P-MMF, WWW 2023, là nguồn quan trọng về tối ưu max-min trong reranking. FairDual chuyển trọng tâm sang in-processing với các backbone lớn. Vì vậy ý tưởng “dùng biến đối ngẫu để giúp nhóm yếu” đã có tiền lệ; luận văn phải làm rõ đóng góp mới ở ràng buộc, estimator, tính khả thi, chi phí hoặc bằng chứng ngoài miền.
+
+Một khoảng trống khả dĩ là ảnh hưởng đồng thời của mini-batch bias và độ bất định popularity trong điều khiển exposure. Tuy nhiên cần so với clipping, smoothing, group reweighting đơn giản trước khi thêm mô hình phức tạp. Nếu hiệu quả chỉ đến từ tăng batch hoặc dùng thêm thông tin tương lai, không thể nhận là đóng góp phương pháp mới.
+
+## 5. Từ điển ký hiệu và đơn vị
+
+| Ký hiệu | Ý nghĩa và điểm cần chú ý |
+|---|---|
+| U, I, G | Tập user, item, nhóm |
+| c_ui, c_hat_ui | Nhãn tương tác và dự đoán |
+| L_K(u), K | Danh sách cuối và độ dài |
+| A_ig | Ma trận membership item–group |
+| n_i | Số nhóm của item i |
+| A_hat | Membership chuẩn hóa từng hàng |
+| m_g | Trọng số/quy mô nhóm để chuẩn hóa |
+| M | Ngưỡng loss nhóm yếu trong bài toán ràng buộc |
+| B, j | Batch size và chỉ số batch |
+| l^j | Vector loss của từng sample trong batch |
+| mu^j | Vector biến đối ngẫu theo nhóm |
+| s^j | Trọng số sample, không phải relevance score |
+| lambda, eta | Trade-off fairness và bước/cấu hình cập nhật đối ngẫu |
+| g_tilde, g, alpha | Gradient ước lượng, momentum gradient, hệ số trộn |
+| gamma_j | Trạng thái yêu cầu/budget nhóm còn lại |
+| Q | Số item lấy mẫu để ước lượng ranking reward |
+| beta | Chu kỳ làm mới bộ mã hóa/embedding item đóng băng |
+| H | Độ dài lịch sử user ở thực nghiệm; trong theorem cũng có hằng số H khác |
+| sigma, L | Hằng số strong convexity và bound trong phân tích |
+| J(B) | Khoảng cách mục tiêu do batching theo định nghĩa tác giả |
+| w, b, t, W | Vector loss item, trọng số nhóm, số mũ fairness và miền khả thi ở công thức (2) |
+| e^j | Thống kê/loss nhóm cộng dồn từ batch j |
+
+Ký hiệu H cho độ dài history và H trong bất đẳng thức không cùng ý nghĩa. Khi ghi chép nên đổi tên thành history_length và H_bound. Tương tự, s^j trong FairDual là trọng số loss; s_ui trong nhiều bài reranking lại là relevance score. Dùng cùng tên trong code sẽ dễ tạo lỗi không rõ ràng.
+
+## 6. Loss không cộng tuyến tính và Jensen gap
+
+Viết lại công thức (1) bằng ký hiệu loss để dễ đọc, với ell_ui=−c_ui log(c_hat_ui):
+
+```text
+min tổng_(u,i) ell_ui
+subject to max_g [ (1/m_g) tổng_u tổng_(i trong L_K(u))
+                          I(i thuộc I_g) ell_ui / n_i ] <= M.
+```
+
+Đây là cách đổi tên đại lượng trong công thức tác giả, không thêm ràng buộc mới. Trong Theorem 1, dạng biến đổi (2) được trình bày là `min_(w thuộc W) b^T (A_hat^T w)^(1+t)`, với lũy thừa theo từng tọa độ. Thống kê nhóm A_hat^T w xuất hiện bên trong lũy thừa, nên không thể đưa phép tổng theo sample ra ngoài tùy ý. Tham số t ở đây gắn với mức ràng buộc, không phải tham số t của ElasticRank dù cùng chữ.
+
+Công thức (2) của bài viết mục tiêu dưới dạng power của thống kê nhóm, với A_hat chuyển loss item sang loss nhóm. Công thức (3) so mục tiêu tối ưu theo batch với mục tiêu tổng thể. Bản chất cần hiểu là phép cộng và hàm phi tuyến không đổi chỗ tự do:
+
+```text
+f(e1 + e2) thường khác f(e1) + f(e2).
+f(E[e]) thường khác E[f(e)].
+```
+
+Hai dòng có thang đo khác nhau. Ví dụ f(x)=x²: f(2+2)=16 còn f(2)+f(2)=8; với trung bình thì f(2)=4. Khi giải thích chiều của gap phải nói đang dùng tổng hay trung bình. Toy tài liệu này dùng dạng normalized Jensen truyền thống để kiểm tra trực giác, không giả vờ trùng mọi quy ước J(B) của bài.
+
+Min/max cũng gây vấn đề. Nếu batch một chỉ có nhóm A yếu, batch hai chỉ có B yếu, “nhóm yếu nhất mỗi batch” có thể làm thuật toán luân phiên can thiệp quá mức dù thống kê toàn bộ đã cân bằng. Không thể giải quyết bằng averaging kết quả cuối nếu gradient trong quá trình học đã đi theo mục tiêu khác.
+
+Ngoài ra, một nhóm ít quan sát có thể biến mất khỏi nhiều batch. Trọng số theo từng batch khi ấy phản ánh composition ngẫu nhiên hơn là mức bất lợi thật. Đây là lý do batch size, cách shuffle và số nhóm phải được đưa vào ablation, không xem là chi tiết kỹ thuật phụ.
+
+## 7. Đối ngẫu và trọng số nhóm: giải thích từng bước
+
+Trong Mục 5.1 và Phụ lục F, tác giả đưa thống kê nhóm thành biến phụ rồi dùng biến đối ngẫu cho quan hệ giữa thống kê và loss. Sau biến đổi, cập nhật mô hình có thể viết như tổng loss sample nhân trọng số. Công thức (7) là điểm nối dễ hiện thực nhất:
+
+```text
+s^j = 1 - A_hat^j mu^j
+weighted_loss = (s^j)^T l^j.
+```
+
+Nếu sample chỉ thuộc A và mu_A=−0,2 thì trọng số là 1,2. Nếu thuộc B với mu_B=0,1 thì trọng số 0,9. Với sample thuộc cả A/B và row-normalize, trọng số bằng 1−0,5(−0,2)−0,5(0,1)=1,05. Đây là phép tính trực tiếp, không cần kiến thức LLM.
+
+Biến đối ngẫu có thể hiểu như giá biên của yêu cầu nhóm, nhưng ý nghĩa dấu phụ thuộc formalism. Không áp trực giác “mu luôn dương, càng lớn càng được thưởng” của bài khác vào đây. Miền M của bài cho phép các giá trị âm có ràng buộc; đó là lý do trọng số có thể lớn hơn 1.
+
+Điểm cần kiểm tra khi tái lập là tính dương và miền giá trị trọng số trong đường chạy thật. Một giá trị s âm có thể đảo hướng tối ưu loss, nên không tự clamp rồi coi vẫn là thuật toán gốc. Nếu cần clipping để ổn định, hãy định danh biến thể và báo ablation.
+
+## 8. Cập nhật đối ngẫu, lấy mẫu và embedding đóng băng
+
+Công thức (9) dùng gradient ước lượng từ ranking reward và budget còn lại, rồi trộn momentum. Một sample user cần được đánh giá trước hàng nghìn hoặc triệu item; tính tất cả mỗi batch quá đắt. Bài dùng Q item để ước lượng utility top-K và giữ bộ embedding item đóng băng trong một số bước.
+
+Về trực giác, Q nhỏ rẻ nhưng có thể bỏ sót item hoặc nhóm quan trọng. Beta lớn giảm chi phí làm mới embedding nhưng khiến embedding cũ hơn mô hình đang học. Hai approximation này phải được kiểm tra riêng; một kết quả tốt không cho biết thành phần nào có thể giảm tài nguyên an toàn.
+
+Mã giả để đọc Algorithm 1:
+
+```text
+Khởi tạo mô hình, membership và trạng thái nhóm.
+Lặp epoch, shuffle theo protocol:
+    định kỳ sao chép/làm mới item embeddings;
+    lấy batch và tính loss từng sample;
+    tính trọng số từ A_hat và mu;
+    cập nhật model bằng weighted loss;
+    lấy Q item, ước lượng top-K reward;
+    cập nhật budget nhóm và momentum gradient;
+    chiếu/cập nhật mu vào miền ràng buộc đối ngẫu.
+```
+
+Đây là bản đồ đọc, không thay thế lời giải projection của bài. Miền đối ngẫu liên quan tổng trên các tập nhóm và cần solver/thuật toán phù hợp; không tự thay bằng phép trừ gradient không ràng buộc rồi gọi FairDual. Nếu thiết kế một phiên bản CPU nhỏ phải nêu rõ approximation nào đã đổi.
+
+Bước chiếu trong Algorithm 1 có dạng `argmin_(mu0 thuộc M) g^T mu0 + eta ||mu0−mu_previous||²`. Miền M được Phụ lục F viết bằng các ràng buộc `sum_(g thuộc S) mu_g m_g >= −lambda` cho các tập con S của G. Biểu thức (8) trong phần văn bản in regularizer dạng norm khác cách bình phương trong Algorithm 1. Vì chưa đọc đầy đủ Dual_sample.py, tài liệu không khẳng định implementation đã chọn biến thể nào; người tái lập cần đối chiếu solver thực tế trước khi chứng minh bước cập nhật.
+
+## 9. Định lý, hướng chứng minh và kiểm tra đại số
+
+Định lý 4 và Phụ lục G xây dựng bound bằng ba ý: biểu diễn chênh lệch primal–dual qua complementary slackness; chặn gradient nhờ reward hữu hạn; dùng bound online/mirror gradient descent với regularizer strongly convex. Các giả định gồm trạng thái đối ngẫu bị chặn thích hợp, gradient/reward hữu hạn, miền chiếu hợp lệ và cách chia mini-batch trong phân tích.
+
+Không suy từ kết quả đó thành bảo đảm huấn luyện mọi mạng neural phi lồi đạt optimum toàn cục. Phần linear/convex trong bài là không gian hoặc bước tối ưu được phân tích; backbone Llama không tự trở thành convex vì được gắn FairDual.
+
+Theo cách in ở công thức (10), bound chứa:
+
+```text
+J(B) <= H_bound/eta
+      + |U| L |G|^2 eta / (B (1-alpha) sigma)
+      + L |G|^2 / (2 (1-alpha)^2 sigma eta).
+```
+
+Văn bản tác giả ghi chọn eta=O(B^(−1/2)) cho bound tương ứng O(B^(−1/2)). Tuy nhiên, nếu giữ các hằng số trong biểu thức in cố định thì H_bound/eta và phần cuối tăng như sqrt(B), không giảm. Đây là **kiểm tra đại số của người biên soạn**: cần xác minh normalization, ký hiệu learning rate và phiên bản proof trước khi trích tốc độ này như một kết luận đã tự chứng minh. Không tự sửa theorem rồi gán lời giải mới cho tác giả.
+
+Một cách trình bày trung thực trong luận văn: bài báo báo cáo bound và tốc độ dưới thiết lập phân tích của họ; phần tái lập kiểm tra lại điều kiện và scaling. Độ tin cậy khoa học đến từ việc nêu rõ phạm vi và chỗ chưa xác minh, không phải lặp lại abstract bằng từ ngữ mạnh hơn.
+
+## 10. Ví dụ số tự xây dựng và cách chạy
+
+Bài có Hình 1 mô phỏng 1.000 user/1.000 item để khảo sát batch và số nhóm; đó không phải toy dưới đây. **Ví dụ này do người biên soạn tự xây dựng**, không tái tạo simulator của bài.
+
+Hai batch có group loss [4,0] và [0,4]. Trung bình là [2,2]. Với f(x)=x_A²+x_B², f(mean)=8; mean(f)=16; Jensen gap normalized bằng 8. Worst-group loss toàn bộ max([2,2])=2, còn trung bình worst-group từng batch là (4+4)/2=4. Do vậy đổi thứ tự tổng hợp làm mục tiêu khác.
+
+Tiếp theo dùng ba sample thuộc A, B, A/B; mu=[−0,2;0,1] cho trọng số [1,2;0,9;1,05]. Dự đoán positive là [0,5;0,8;0,6], loss −log(p)=[0,693147;0,223144;0,510826]. Tổng chưa cân là 1,427116; weighted tổng là 1,568973. Weighted loss lớn hơn không có nghĩa mô hình vừa kém đi: đây là cùng dự đoán được đánh giá dưới một hàm mục tiêu khác.
+
+Cuối file kiểm tra bound: B=100, eta=0,1, H_bound=1 cho H_bound/eta=10; B=400, eta=0,05 cho 20. Hai dòng chỉ kiểm tra một thành phần và minh họa yêu cầu đọc scaling; không bác bỏ toàn bộ phương pháp bằng một toy.
+
+Chạy `python3 Vi_du_chay_tay/14_FairDual.py`. File dùng thư viện chuẩn, có assertion trọng số và in mọi đại lượng trên. Nó không hiện thực projection, momentum, Llama hay learning loop đầy đủ, nên tuyệt đối không báo đây là “đã chạy FairDual”.
+
+## 11. Đọc mã nguồn, ánh xạ biến và cài đặt
+
+README chính thức cho biết bản công khai dựa BigRec và phát hành đường chạy Llama2–MIND. File `train.py` có `FairTrainer.compute_loss`, `get_item_emb`, `WeightLabelSmoother` và gọi `Dual_Sampler` từ `sample_utils.Dual_sample`. Đây là tên đã thấy trong code, không phải tên script tự đề xuất.
+
+`get_item_emb` dựng cache item embeddings. Trong `compute_loss`, model sinh hidden states cho user, lấy mẫu item embeddings, tính dot product, dùng `torch.topk`, rồi gọi `Fair_Sampler.update_weight(items)`. Trọng số được truyền vào `WeightLabelSmoother` để cân loss sinh token. Cờ cập nhật quyết định làm mới item cache. Nội dung đầy đủ `Dual_sample.py` chưa truy cập được trong phiên này; không khẳng định đã kiểm tra solver projection bên trong.
+
+Code được đọc còn có logic lấy embedding phụ thuộc token ID xuống dòng và reshape số đoạn prompt cố định. Nếu đổi tokenizer/prompt, cần kiểm tra lại logic đó. Đây là điểm tương thích của bản triển khai, không phải lý thuyết FairDual yêu cầu mọi prompt có cùng số xuống dòng.
+
+README chỉ dẫn chạy `sh train.sh` và tham chiếu BigRec để chuẩn bị môi trường. Mục thực nghiệm bài ghi Python 3.9, PyTorch 2.0.1+cu117, cvxpy, Ubuntu 18.04 và NVIDIA A5000. Không có đủ căn cứ để bảo đảm một lệnh cài package phiên bản mới nhất chạy được code cũ.
+
+```bash
+sh train.sh
+```
+
+Lệnh này chưa chạy ở lần biên soạn. Ghi chú Ma_nguon/14_FairDual/SOURCE.md chỉ là bản audit nguồn web, không chứa model weights và không phải Git snapshot. Với máy 16 GB, nên học cơ chế qua toy trước, rồi cân nhắc triển khai lại trên BPR với tên biến thể rõ ràng.
+
+## 12. Thực nghiệm của bài và cách đọc kết quả
+
+Bài dùng MIND, Amazon-Book, Amazon-Electronic; sắp timestamp, chia global 80/10/10. Backbone chính NRMS, RecFormer, BigRec; phụ lục có BPR, GRU4Rec, SASRec. Baseline UNI, DRO, S-DRO, Prop, IFairLRS, Maxmin Sample. Metric NDCG/MRR/MMF ở K=5/10/20; MMF trong evaluation tổng hợp utility của 20% nhóm kém nhất, không đơn thuần là min exposure của một item.
+
+Bảng 1, BigRec–MIND@10: FairDual NDCG=1,69%, MRR=1,11%, MMF=2,99%; UNI tương ứng 1,50%, 0,98%, 2,33%. NDCG baseline tốt nhất ở bảng là 1,62%, nên mức tăng tương đối 4,32% được tính theo baseline đó. Không nhầm 1,69% thành 0,169 hoặc hiểu 4,32% là tăng 4,32 điểm phần trăm.
+
+Phụ lục I ghi BigRec huấn luyện 1.024 mẫu vì chi phí lớn; các mô hình LLM chạy ba lần. Đây là giới hạn ngân sách ảnh hưởng phạm vi kết luận. Khi viết luận văn, ghi nguồn từng số cùng setting và không coi số BigRec trên MIND là dự báo kết quả BPR trên MovieLens.
+
+Ngoài bảng chính, cần đọc ablation Q, beta, B và group size. Đối với đề tài ba mục tiêu, bổ sung ILD, catalog coverage, exposure chiết khấu, cold-user subgroup và peak RAM. Bootstrap metric toàn hệ thống phải tính lại trên tập user lấy mẫu; không lấy trung bình các Gini riêng lẻ rồi gọi là Gini tổng.
+
+## 13. Đóng góp, hạn chế và ba hướng kiểm chứng
+
+Tác giả phân tích Jensen gap, đổi bài toán MMF thành reweighting đối ngẫu và xây FairDual, kèm thực nghiệm nhiều backbone. Giới hạn thực tiễn thể hiện ở approximation item sampling/cache và chi phí LLM. Nhận xét riêng của người biên soạn gồm audit scaling bound, phụ thuộc nhóm, thiếu objective diversity trực tiếp và mức đầy đủ của artifact công khai.
+
+Hướng A: chuyển đối ngẫu sang frozen-score reranking. So với P-MMF, ElasticRank và PFA; giữ score/candidate pool cố định. Ablation bỏ lịch sử dual và thay bằng inverse popularity. Bác bỏ nếu lợi ích không vượt baseline đơn giản hoặc thực chất do đổi scorer.
+
+Hướng B: estimator reward có bất định theo nhóm. So uniform Q sampling với stratified sampling, cùng Q và thời gian. Đo bias/variance trên một catalog nhỏ có thể tính full reward. Bác bỏ nếu estimator mới chỉ tốt khi dùng thêm nhiều item hoặc làm chậm vượt ngân sách.
+
+Hướng C: liên hệ batch bias với cold users. Chạy B và group size theo lưới, kiểm tra arrival skew và temporal drift; thêm diversity theo user. So full-batch nhỏ như reference và các phiên bản minibatch. Bác bỏ nếu kết quả đổi dấu giữa seeds hoặc chỉ đo loss surrogate mà exposure cứng không cải thiện.
+
+## 14. Nguồn tham khảo và câu hỏi tự kiểm tra
+
+- FairDual chính thức: proceedings, arXiv, GitHub ở Mục 1; đọc Phụ lục F–G cùng Algorithm 1.
+- P-MMF, WWW 2023: https://doi.org/10.1145/3543507.3583296.
+- Distributionally-Robust Recommendations for Improving Worst-Case User Experience: https://doi.org/10.1145/3485447.3512255.
+- BigRec, A Bi-Step Grounding Paradigm for Large Language Models in Recommendation Systems: https://arxiv.org/abs/2308.08434.
+- NRMS: https://aclanthology.org/D19-1671/.
+- MIND: https://aclanthology.org/2020.acl-main.331/.
+- PFA: https://arxiv.org/abs/2605.01524.
+- BPR: https://proceedings.mlr.press/r7/rendle09a.html.
+
+Người học nên tự trả lời: vì sao averaging fairness theo batch khác fairness trên toàn hệ thống; vì sao một sample hai nhóm cần membership normalization; vì sao phân tích đối ngẫu không tự bảo đảm optimum của Llama; và phần nào trong toy đã kiểm tra, phần nào của FairDual vẫn chưa chạy. Đây là các ranh giới cần nêu rõ khi bảo vệ luận văn.
+
+
+## Phụ lục A. Danh mục trích dẫn chuẩn hóa
+Các mục dưới đây ghi đủ tên công trình, năm/nơi công bố và link để tra cứu. Gồm bài chính và tài liệu đối chiếu cho luận văn; không khẳng định mọi mục đều nằm trong bibliography của bài gốc. Mã A1, A2… chỉ dùng trong phụ lục của tài liệu này.
+
+[A1] Chen Xu, Yuxin Li, Wenjie Wang, Liang Pang, Jun Xu, Tat-Seng Chua. Bridging Jensen Gap for Max-Min Group Fairness Optimization in Recommendation. ICLR 2025, conference paper. [Bài/toàn văn](https://proceedings.iclr.cc/paper_files/paper/2025/hash/184a03a3ad07e8897c62461c02634b02-Abstract-Conference.html); [code](https://github.com/XuChen0427/FairDual).
+
+[A2] Jingzhi Li, Zhiyong Cheng, Richang Hong, Meng Wang. Post-hoc Provider Fairness Adaptation via Hierarchical Exposure Alignment. ACM SIGIR 2026. [DOI 10.1145/3805712.3809597](https://doi.org/10.1145/3805712.3809597). [Bài/toàn văn](https://arxiv.org/html/2605.01524v1); [code](https://github.com/Tam-JQK/Post-train).
+
+[A3] Chen Xu, Jujia Zhao, Wenjie Wang, Liang Pang, Jun Xu, Tat-Seng Chua, Maarten de Rijke. Understanding Accuracy-Fairness Trade-offs in Re-ranking through Elasticity in Economics. ACM SIGIR 2025, tr. 539–548. [DOI 10.1145/3726302.3730106](https://doi.org/10.1145/3726302.3730106). [Bài/toàn văn](https://arxiv.org/html/2504.14991v1); [code](https://github.com/XuChen0427/ElasticRank).
+
+[A4] Steffen Rendle, Christoph Freudenthaler, Zeno Gantner, Lars Schmidt-Thieme. BPR: Bayesian Personalized Ranking from Implicit Feedback. UAI 2009, 460–469. [PMLR và PDF](https://proceedings.mlr.press/r7/rendle09a.html).
+
+[A5] Wayne Xin Zhao và cộng sự. RecBole: Towards a Unified, Comprehensive and Efficient Framework for Recommendation Algorithms. CIKM 2021. [DOI 10.1145/3459637.3482016](https://doi.org/10.1145/3459637.3482016); [code](https://github.com/RUCAIBox/RecBole).

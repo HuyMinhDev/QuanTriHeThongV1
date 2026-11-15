@@ -1,0 +1,104 @@
+CSE631  |  ĐỀ TÀI 07  |  BƯỚC 2
+PAPER 04ĐỌC, HIỂU VÀ PHÂN TÍCH
+Relevance-aware Individual Item Fairness Measures for Recommender Systems: Limitations and Usage Guidelines
+Theresia Veronika Rampisela; Maria Maistro; Tuukka Ruotsalo; Falk Scholer; Christina Lioma
+ACM Transactions on Recommender Systems 4(3), Article 37, 45 trang; online 05/03/2026
+DOI: 10.1145/3765624  |  Bài/toàn văn  |  Code chính thức
+Hướng dẫn tiếng Việt cho người mới bắt đầu
+Từ bài toán, định nghĩa và công thức đến mã giả, ví dụ số, đọc code, thực nghiệm và hướng phát triển luận văn.
+Ngữ cảnh: accuracy–diversity–exposure balanced reranking; điều kiện dự kiến máy 16 GB RAM.
+Phạm vi kiểm chứng
+Đọc tài liệu và mã nguồn truy cập được; chạy các ví dụ giảng giải nhỏ. Chưa huấn luyện lại hoặc tái lập đầy đủ benchmark gốc. Ví dụ tự xây dựng và nhận xét độc lập được ghi nhãn trong nội dung.
+Các tệp mã kèm theo là phần đã đọc/trích xuất qua web; xem SOURCE.md để biết phần thiếu và link repo đầy đủ. Tài liệu không thay thế bài gốc và điều kiện sử dụng dữ liệu/mã nguồn.
+
+1. Bài báo nào và vì sao cần đọc trước khi thiết kế reranker?
+Relevance-aware Individual Item Fairness Measures for Recommender Systems: Limitations and Usage Guidelines, Theresia Veronika Rampisela, Maria Maistro, Tuukka Ruotsalo, Falk Scholer, Christina Lioma; ACM TORS4(3), Article37; DOI 10.1145/3765624. Bản publisher công bố05/03/2026; README còn citation “Just Accepted” năm2025. Đây là hai trạng thái của cùng công trình. Repo, bản tác giả trong luận án, Chương4.
+Kết quả cốt lõi: bài phân tích năm hạn chế của relevance-aware item fairness metrics và sửa những trường hợp có thể sửa. Thực nghiệm gồm Lastfm, Amazon Luxury Beauty, QK-video, ML10M và dữ liệu tổng hợp; dùng ItemKNN/BPR/MultiVAE/NCL cùng COMBMNZ. §6.3 cho thấy các metric hiệu chỉnh trong phép thử đạt điểm tốt nhất lý thuyết0. Phạm vi sửa chủ yếu là binary relevance, single-round/deterministic ranking. Nguồn publisher và kết quả.
+Đây là nghiên cứu về cái thước đo, không phải thuật toán tạo recommendations mới. Nếu chiếc thước biến đổi ý nghĩa theo cutoff hoặc không tính được khi có item không ai thích, một reranker có thể “thắng fairness” chỉ do đã gặp cách đo thuận lợi. Với luận văn CSE631, đọc bài này giúp tránh xây bảng kết quả có nhiều chỉ số nhưng kết luận thiếu giá trị.
+Các diễn giải, chứng minh số học và toy bên dưới do người biên soạn xây dựng. Đã đọc nội dung publisher được lập chỉ mục và README chính thức; chưa chạy mã huấn luyện. Raw file metrics.py của repo mở rộng không truy cập được qua cache trong lần rà soát này. Không giả định đã kiểm tra mọi implementation hiệu chỉnh.
+2. Kiến thức nền và lộ trình đọc cho người mới
+Hãy phân biệt ba vật: nhãn relevance, vị trí hiển thị và định nghĩa fairness. Nhãn relevance nói user quan tâm item nào theo dữ liệu đánh giá. Vị trí quyết định attention proxy, ví dụ hạng1 có trọng số1, hạng2 có0,5. Fairness quy định phân phối attention thế nào được coi là hợp lý. Đặt ba vật chung một cột tên “điểm tốt” làm mất khả năng giải thích.
+Một ví dụ đời thường: hai sản phẩm đều phù hợp với một người; sản phẩm thứ nhất đứng đầu mỗi ngày, sản phẩm thứ hai chưa bao giờ xuất hiện. Relevance có thể cao trong cả hai ngày, nhưng cơ hội xuất hiện khác nhau. Ngược lại, chia exposure đều cho những sản phẩm không phù hợp có thể thỏa một quan niệm equality và làm utility thấp. Không có phép đổi tên metric nào tự giải quyết lựa chọn chính sách đó.
+Lần đọc đầu, đi từ §2 về notation/examination functions sang §3 về các trường hợp lỗi. Sau đó chỉ chọn một metric là IAA để học sâu; đọc §4.2 sửa examination function và §4.1 chuẩn hóa. Làm toy Mục7 trước khi đọc bảng7 nhiều dòng. Cuối cùng đọc §7 về chọn metric theo tình huống, thay vì tìm một tên được tác giả gọi là tốt nhất để dùng cho mọi dữ liệu.
+Điều kiện kiến thức chỉ gồm trung bình, trị tuyệt đối, bình phương, chuẩn hóa min–max và xếp thứ tự. Không cần học toàn bộ machine learning trước. Tuy nhiên phải hiểu rằng dữ liệu recommendation thiếu nhãn: một item không có tương tác chưa chắc không phù hợp. Điều đó tác động trực tiếp tới các metric dùng toàn bộ relevance của user.
+3. Input, output và đơn vị đánh giá
+Input của evaluator gồm ranking cho mỗi user, tập item hợp lệ, relevance labels, cutoff K và hàm attention. Nếu metric yêu cầu toàn ranking thì top-K đơn thuần chưa đủ. Nếu metric yêu cầu số relevant items của một user thì chỉ biết số relevant trong danh sách hiển thị cũng chưa đủ.
+Output là một hoặc nhiều số mô tả dữ liệu đã đánh giá, kèm trạng thái tính được/không tính được. “NaN” là tín hiệu cần giải thích, không tự biến thành0 rồi đưa vào trung bình. Số item/user bị loại và lý do phải trở thành metadata của kết quả.
+Với exposure-only fairness, đơn vị thường là item trên toàn tập users: eᵢ cộng attention item i nhận được ở mọi danh sách. Với metric relevance-aware, phép tính có thể trước hết theo user rồi trung bình, hoặc cộng exposure trước rồi so disparity. Hai thứ tự tính thường không tương đương vì bình phương/trị tuyệt đối là phi tuyến.
+Ví dụ độc lập: sai lệch của item ở hai user lần lượt +1 và−1. Bình phương rồi trung bình cho1; trung bình rồi bình phương cho0. Cùng dữ liệu, hai thước đo có thể coi “bù trừ giữa users” là chấp nhận được hoặc không. Khi hai metric bất đồng, cần kiểm tra cấu trúc tổng hợp trước khi kết luận một metric sai.
+4. Prior art và khoảng trống có điều kiện
+IAA, IFD, Hellinger Distance, MME, IBO/IWO, II-F/AI-F không phải tất cả đều xuất hiện lần đầu trong bài này. Chúng bắt nguồn từ các dòng exposure allocation, ranking fairness và expected exposure; bài tập hợp rồi kiểm tra cách dùng trong recommendation. Nghiên cứu SIGIR2024 cùng nhóm có vai trò tiền thân; không đếm nó và bản mở rộng TORS như hai ý tưởng độc lập khi lập related work.
+Khoảng trống phương pháp ở đây là thiếu hiểu biết về hành vi của metrics trong những tình huống evaluator thực sự gặp. Một công thức đẹp có thể có miền giá trị lý thuyết[0,1] nhưng, với dữ liệu hiện tại, chỉ đạt từ0,02 đến0,07. Khi đó “điểm0,03 gần0 nên gần hoàn hảo” là cách đọc sai.
+Đối với đề tài, gap tiếp theo có thể là ảnh hưởng của missing labels, candidate restriction và temporal drift tới thứ hạng thuật toán theo metric. Đây là giả thuyết cần nghiên cứu, không phải khẳng định các yếu tố này chưa từng được xem xét. Cần đọc cả DPFR và bản mở rộng năm2026 trước khi chốt tính mới về metric robustness.
+5. Ký hiệu và năm hạn chế: hiểu bằng câu hỏi cụ thể
+Ký hiệu
+Ý nghĩa trong phần giảng
+U, I; m, n
+Users, items và số lượng tương ứng
+πᵤ(r)
+Item ở hạng r của user u
+yᵤᵢ
+Relevance nhị phân 0/1
+K
+Số vị trí hiển thị
+a(r)
+Attention gán cho vị trí r
+eᵤᵢ
+Attention item i nhận từ user u
+Rᵤ
+Tập relevant items trong nhãn đánh giá
+L, Lmin, Lmax
+Sai lệch đo được và hai biên khả đạt
+
+Non-realisability: liệu bộ ranking nào trong bài toán hiện tại có thực sự đạt điểm tốt nhất/điểm tệ nhất ghi trên thang đo? Hãy nghĩ đến nhiệt kế chỉ có thể đo từ20 tới30 nhưng vạch0 được diễn giải là trạng thái lý tưởng. Không đạt0 có thể do ràng buộc dữ liệu, không phải thuật toán dở.
+Non-localisation: có tính được điểm từ top-K và nhãn tại đó không, hay phải biết item nằm ngoài top-K? Nếu bổ sung một nhãn relevance ở cuối danh sách làm score thay đổi dù danh sách hiển thị giữ nguyên, người đọc cần biết metric đang đo điều gì.
+Undefinedness: mẫu số có thể bằng0 trong dữ liệu hợp lệ không? Một item không relevant cho user nào có thể làm tỷ số dựa merit không xác định. Chọn K=1 cũng có thể làm một normalization lỗi. Không phải mọi chia0 đều xử lý bằng cộng1e−8; làm vậy có thể đổi định nghĩa thước đo.
+Zero-exposure: item ở đúng vị trí K đã hiển thị nhưng bị hàm attention gán0, giống item ngoài màn hình. Khi so K khác nhau, lỗi này làm một slot có tác động biến mất.
+Top-k-insensitivity: đổi cutoff nhưng metric không phản ứng, chẳng hạn vẫn cộng attention cho item ngoài top-K. Đôi khi một đại lượng không phụ thuộc K là chủ ý; khi gắn nhãn fairness@K thì sự bất tương thích đó cần được nêu rõ. Các tên trên là khung phân tích của bài; những ví dụ diễn giải là của tài liệu này.
+6. Đi sâu IAA và tự chứng minh điều kiện chuẩn hóa
+Xét một user, binary relevance, một lần ranking và có cả nhãn0 lẫn1. Một dạng đơn giản hóa của IAA là L=(1/n)Σᵢ|eᵢ−yᵢ|. Đây là trường hợp học tập; công thức đa round trong bài còn có bước tổng hợp cần đọc nguyên văn. Mục đích ở đây là hiểu vì sao attention và biên normalization quyết định tính diễn giải.
+Hàm tuyến tính cũ trên r≤K là a_old(r)=(K−r)/(K−1), ngoài K là0. Nó có a_old(K)=0 và không xác định khi K=1. Cách sửa tương ứng phương trình34 là dùng a_new(r)=(K+1−r)/K cho r≤K; ngoài K là0. Khi K=2, hai vector attention cho n=4 là [1;0;0;0] và [1;0,5;0;0]. Dấu chấm phẩy phân tách phần tử để tránh nhầm với dấu phẩy thập phân. Không có dữ liệu người thật nào trong lựa chọn này; đó là mô hình attention để tính metric.
+Sau đây là chứng minh giảng dạy độc lập. Với y∈{0,1} và a∈[0,1], ta có |a−y|=a+y−2ay. Gọi t=Σy là số relevant items. Khi xét mọi hoán vị item, tổng attention A=Σa và t giữ nguyên. Do đó L=(A+t−2Σᵢ:aᵢ thuộc relevant aᵢ)/n. Tối thiểu hóa L tương đương tối đa hóa tổng attention dành cho relevant items.
+Vì a giảm theo vị trí, đặt relevant items vào những vị trí attention cao nhất cho Lmin; đặt chúng vào thấp nhất cho Lmax. Một đổi chỗ chứng minh điều này: nếu relevant item có attention thấp b còn irrelevant item có attention cao a>b, đổi chỗ tăng Σrelevant attention thêm a−b, làm L giảm2(a−b)/n. Lặp đến khi không có cặp nghịch thế. Đây là chứng minh cho setting đã nêu, không tự mở rộng sang graded relevance, constraints theo group hay nhiều rounds.
+Nếu Lmax>Lmin, đặt Lnorm=(L−Lmin)/(Lmax−Lmin). Khi đó0 nghĩa tốt nhất khả đạt theo metric này và dữ liệu này,1 nghĩa tệ nhất khả đạt. Nếu Lmax=Lmin, phép chia không hợp lệ; chẳng hạn mọi item có cùng nhãn, hoán vị không đổi target. Cần báo trường hợp suy biến, không cho một score tùy ý rồi tuyên bố đã có tính diễn giải.
+Tính đúng của phép chuẩn hóa không chứng minh metric trùng fairness cảm nhận. Một thước đo có thể chuẩn hóa hoàn hảo nhưng tối ưu nó lại ưu tiên sai chính sách xã hội. Mệnh đề toán học và lựa chọn chuẩn tắc là hai loại lập luận khác nhau.
+7. Toy nguyên bản: đủ 24 hoán vị, tính từng bước
+Toy do người biên soạn xây dựng, không chép ví dụ của paper. Có I={A,B,C,D}; relevant={A,B}; K=2. Xét ba thứ tự đầy đủ ABCD, ACBD, CDAB.
+ABCD có relevance theo vị trí [1;1;0;0]. Với attention mới[1;0,5;0;0], vector sai lệch tuyệt đối là[0;0,5;0;0]; tổng0,5 chia n=4 được L=0,125. Với attention cũ[1;0;0;0], sai lệch là[0;1;0;0], L_old=0,25.
+ACBD có relevance[1;0;1;0]. Attention mới cho sai lệch[0;0,5;1;0]; tổng1,5 chia4 bằng0,375. Attention cũ vẫn cho0,25. Vậy bản cũ không phân biệt hai trường hợp trong đó slot hiển thị thứ hai thay từ item phù hợp sang không phù hợp.
+CDAB có relevance[0;0;1;1]. Attention mới cho sai lệch[1;0,5;1;1]; tổng3,5 chia4 bằng0,875. Đây là Lmax; ABCD đạt Lmin0,125. Chuẩn hóa cho ABCD0, ACBD=(0,375−0,125)/0,75=1/3, CDAB1.
+Một hiện tượng cần chú ý: sửa công thức có thể làm một score giảm và một score khác tăng. Vì thế không đánh giá “bản sửa tốt” bằng việc mọi metric đều nhỏ đi. Điều cần kiểm tra là tính chất mong muốn đã được khôi phục, ví dụ hai ranking có khác biệt exposure ở slot2 đã được phân biệt.
+Vi_du_chay_tay/04_Fairness_Metrics.py liệt kê cả24 hoán vị và assert hai biên. Chạy:
+python3 Vi_du_chay_tay/04_Fairness_Metrics.py
+Output đã kiểm tra:
+ABCD old=0.250000 corrected_raw=0.125000 normalised=0.000000ACBD old=0.250000 corrected_raw=0.375000 normalised=0.333333CDAB old=0.750000 corrected_raw=0.875000 normalised=1.000000enumerated=24 min=0.125000 max=0.875000old_attention_k1=undefined; corrected_attention_k1=1.000000
+Toy có mục tiêu học normalization, không đo exposure toàn catalog giữa nhiều users. Không được dùng số0 ở toy làm bằng chứng một reranker công bằng cho thương mại điện tử.
+8. Quy trình dùng bài này trong thực nghiệm
+Không có “thuật toán TORS” sinh recommendations. Quy trình thực chất là evaluator audit. Mã giả dưới đây do tài liệu đề xuất để tổ chức công việc:
+Đọc định nghĩa metric, required inputs, orientation và miền hợp lệVới mỗi K và mỗi batch đánh giá:    Kiểm tra ranking không lặp item và item-ID mapping hợp lệ    Kiểm tra nhãn, catalog, attention và zero-denominator cases    Tính metric gốc cùng bản sửa đã xác minh    Lưu score, số NaN, số user/item loại và phiên bản công thứcTạo ranking tổng hợp có tính chất biết trướcĐổi một yếu tố: vị trí, K, nhãn ngoài top-K, catalog hoặc user orderKiểm tra metric phản ứng đúng tính chất đã tuyên bốSo thứ hạng thuật toán và độ bất định, giữ raw outputs
+Hai kiểu test rất hữu ích. Test định nghĩa dùng dữ liệu nhỏ và expected score tính tay. Test metamorphic không cần biết score chính xác nhưng biết quan hệ: đổi tên item đồng thời ở predictions và labels không được đổi score; thêm irrelevant item ở ngoài candidate universe không được bị tính nếu catalog đã định nghĩa loại nó. Nếu catalog thay đổi có chủ ý thì score có thể đổi, cần gắn version đúng.
+Một phép thử khác là giữ recommendations cố định rồi bật một nhãn relevance ngoài top-K. Với exposure-only Gini, score phải giữ nguyên; với relevance-aware metric, có thể đổi. Đây không nhất thiết là bug, nhưng cần hiểu và công bố. Nó giúp phân biệt “metric đo chính sách khác” với “implementation không theo công thức”.
+9. Mã nguồn chính thức và phần bằng chứng còn thiếu
+README repo TORS chỉ sang repo SIGIR2024 cho dataset/training ban đầu. Root có RecBole, cluster, experiments, reranking, appendix.pdf. README ghi search space tại Recbole/hyperchoice và cấu hình tốt nhất tại cluster/bestparam.txt; lưu ý case Recbole trong mô tả phải đối chiếu cây thư mục thực vì root hiển thị RecBole.
+Không xác minh được nội dung file metric hiệu chỉnh của repo TORS trong phiên này. Có thể đọc implementation cũ cùng nhóm trong DPFR metrics.py: IAA.get_IAA, IAArerank.get_IAA, IIF_AIF.get_metrics, FairWORel. Đây là nguồn bổ trợ để học cấu trúc; không được gọi nó là bản implementation đã xác minh của toàn bộ corrections TORS.
+Thư mục Ma_nguon/04_Fairness_Metrics lưu ghi chú nguồn và trích đoạn có provenance. Không có một lệnh cài đặt toàn bộ bài đã được xác minh cài thành công. Đường tái lập trung thực là đọc README, tạo environment phù hợp fork RecBole, pin commit, rồi chạy riêng evaluator trên toy trước. Lệnh chạy toy của tài liệu chỉ cần Python chuẩn, không đòi GPU hay download dataset.
+10. Đọc thí nghiệm và kết quả đúng phạm vi
+Baseline trong nghiên cứu metric gồm hai tầng: recommenders sinh ranking để tạo tình huống thật và metric gốc để đối chiếu bản sửa. Khi thấy ItemKNN/BPR/NCL, không hiểu bài đang tuyên bố mô hình mới vượt NCL. Đầu ra chính là hành vi phép đo trước perturbations và mức thống nhất giữa các cách xếp hạng mô hình.
+Các công cụ phân tích cần thiết khi tái lập gồm tỷ lệ NaN, empirical range, biến thiên theo K, sensitivity với nhãn thiếu và Kendall correlation giữa thứ hạng models. Correlation cao không chứng minh fairness tốt; có thể hai metrics cùng đo gần một khía cạnh relevance. Correlation thấp cũng không chứng minh một metric sai; có thể chúng giữ các mục tiêu khác nhau.
+Thông tin đã xác minh gồm Python/notebook và RecBole, mô hình chọn theo NDCG@10 validation, training tối đa300epoch có early stopping. Split chính xác của mọi dataset, package lock và hardware cho mọi analysis chưa được xác minh đầy đủ từ nguồn truy cập trong phiên; không tự điền bằng protocol DPFR dù cùng tác giả. Muốn tái lập, phải lấy manifest/config riêng của bài.
+Kết quả “đạt0” ở §6.3 là kiểm tra biên lý thuyết trong những phép thử thiết kế. Nó không có nghĩa mọi recommendation thật nhận fairness0 hoặc mọi hạn chế đều đã sửa được. Trong luận văn, cách ghi an toàn là mô tả một thuộc tính, setup kiểm tra và bằng chứng, thay vì chép câu “metrics mới tốt hơn”.
+11. Hạn chế và ba hướng phát triển có thể bác bỏ
+Giới hạn tác giả nêu: trọng tâm single/deterministic ranking và binary relevance; cần khảo sát sâu hơn graded relevance, stochastic/multi-round và liên hệ cảm nhận con người. Nhận xét của tài liệu: user/item group fairness và three-objective reranking của CSE631 cần các phép đo bổ sung; một correction toán học không tự giải quyết dữ liệu thiếu hay popularity feedback loop.
+Hướng A: nhãn thiếu có cấu trúc. Giữ predictions cố định, che relevance ở head và tail với tỷ lệ khác nhau; so metric gốc/sửa, Gini và NDCG. Outcome là tỷ lệ đảo thứ hạng models và độ rộng CI. Prior art gần là TORS này và DPFR. Ablation random masking so popularity-dependent masking. Bác bỏ giả thuyết nếu khác biệt chỉ do thay đổi số user đủ điều kiện, không do sensitivity thực.
+Hướng B: candidate-constrained normalization. Biên khả đạt dưới toàn catalog có thể khác biên khi chỉ cho top-M candidates. Dùng enumeration/solver trên tập nhỏ để tính biên thật theo constraint, rồi so cách chuẩn hóa toàn catalog. Báo rõ đây là metric variant do mình đề xuất. Bác bỏ hướng nếu variant không đổi kết luận hoặc chỉ thưởng candidate pool nghèo vì đã hạ chuẩn quá nhiều.
+Hướng C: online rounds mô phỏng có nguồn ngẫu nhiên rõ. Xây nhiều round với attention discount và exposure budget, so tính metric sau từng round với aggregate cuối. Ablation deterministic policy/stochastic policy và fixed/drifting relevance. Phải gọi là mô phỏng; không tuyên bố tác động nhân quả từ MovieLens. Nếu kết quả đảo chiều theo một giả định không có căn cứ, giới hạn kết luận tương ứng thay vì chọn giả định có lợi.
+12. Nguồn đọc tiếp và kiểm tra mức hiểu
+Tài liệu chính: publisher TORS, repo mở rộng, SIGIR2024, repo tiền thân, luận án tác giả, DPFR evaluator để đối chiếu.
+Người học nên tự trả lời: vì sao score0,01 không nhất thiết gần lý tưởng; vì sao K=1 phải được test; vì sao cần biết nhãn ngoài top-K; vì sao trung bình rồi bình phương khác bình phương rồi trung bình; và vì sao chuẩn hóa đúng chưa chứng minh fairness phù hợp ứng dụng. Nếu giải thích được bằng toy, phần related work sẽ có lập luận thay vì danh sách tên metric.
+Phụ lục A. Danh mục trích dẫn chuẩn hóa
+Các mục dưới đây ghi đủ tên công trình, năm/nơi công bố và link để tra cứu. Gồm bài chính và tài liệu đối chiếu cho luận văn; không khẳng định mọi mục đều nằm trong bibliography của bài gốc. Mã A1, A2… chỉ dùng trong phụ lục của tài liệu này.
+[A1] Theresia Veronika Rampisela, Maria Maistro, Tuukka Ruotsalo, Falk Scholer, Christina Lioma. Relevance-aware Individual Item Fairness Measures for Recommender Systems: Limitations and Usage Guidelines. ACM Transactions on Recommender Systems 4(3), Article 37, 45 trang; online 05/03/2026. DOI 10.1145/3765624. Bài/toàn văn; code.
+[A2] Theresia Veronika Rampisela, Tuukka Ruotsalo, Maria Maistro, Christina Lioma. Joint Evaluation of Fairness and Relevance in Recommender Systems with Pareto Frontier. ACM The Web Conference 2025, tr. 1548–1566. DOI 10.1145/3696410.3714589. Bài/toàn văn; code.
+[A3] Chen Xu, Zhirui Deng, Clara Rus, Xiaopeng Ye, Yuanna Liu, Jun Xu, Zhicheng Dou, Ji-Rong Wen, Maarten de Rijke. FairDiverse: A Comprehensive Toolkit for Fairness- and Diversity-aware Information Retrieval. ACM SIGIR 2025, resource paper, tr. 3540–3550. DOI 10.1145/3726302.3730280. Bài/toàn văn; code.
+[A4] Steffen Rendle, Christoph Freudenthaler, Zeno Gantner, Lars Schmidt-Thieme. BPR: Bayesian Personalized Ranking from Implicit Feedback. UAI 2009, 460–469. PMLR và PDF.
+[A5] Wayne Xin Zhao và cộng sự. RecBole: Towards a Unified, Comprehensive and Efficient Framework for Recommendation Algorithms. CIKM 2021. DOI 10.1145/3459637.3482016; code.

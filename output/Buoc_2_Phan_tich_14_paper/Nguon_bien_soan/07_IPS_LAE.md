@@ -1,0 +1,166 @@
+# 07. IPS-LAE: hiểu cách sửa thiên lệch độ phổ biến bằng đại số tuyến tính
+
+## 1. Nhận diện bài và phạm vi tài liệu
+
+**Accurate and Diverse Recommendations via Propensity-Weighted Linear Autoencoders**, Kazuma Onishi, Katsuhiko Hayashi, Hidetaka Kamigaito; SIGIR-AP 2025; DOI [10.1145/3767695.3769512](https://doi.org/10.1145/3767695.3769512). [Toàn văn](https://arxiv.org/html/2512.20896v1), [PDF](https://arxiv.org/pdf/2512.20896), [repo chính thức](https://github.com/cars1015/IPS-LAE).
+
+Bài nghiên cứu trọng số propensity theo log-sigmoid cho linear autoencoder. Thử nghiệm dùng ML20M, Netflix và MSD, đối chiếu EASE/EDLAE/RDLAE/SANSA. Độ đa dạng chính được đo bằng catalog coverage, không phải khác biệt thể loại trong mỗi danh sách. Bảng 1, EASE trên ML20M: NDCG@100 **0,4203→0,4217**; Coverage@100 **0,2134→0,7133**. Đây là kết quả tác giả, chưa được chạy lại trong tài liệu này. Các công thức trọng tâm ở §3–4; protocol và kết quả ở §5. [Nguồn bài gốc](https://arxiv.org/html/2512.20896v1).
+
+Các phần giảng giải, chứng minh lại và ví dụ dưới đây do người biên soạn viết độc lập để học. Chúng không phải bản dịch toàn văn, không thay thế phụ lục, và không tạo bằng chứng một hệ gợi ý mới đã hoạt động. Đã đọc mã `main.py`, `run.sh`, `environment.yml`, `sansa.py` qua nguồn chính thức; bản lưu trong thư mục mã là trích đoạn phục vụ đối chiếu, chưa phải bản clone hoàn chỉnh.
+
+## 2. Kiến thức nên học trước và cách đọc lần đầu
+
+Người mới chỉ cần hiểu vector, nhân ma trận, đạo hàm bậc hai và train/validation/test. Hãy bắt đầu với một bảng gồm user ở hàng, item ở cột. Số 1 cho biết có tương tác; số 0 chỉ cho biết chưa quan sát tương tác dương. Không được đọc số 0 thành “chắc chắn không thích”. Chẳng hạn một phim ít người đánh giá có thể chưa được biết đến, cũng có thể kém hấp dẫn, hoặc cả hai. Dữ liệu quan sát không tự tách hai nguyên nhân đó.
+
+Tiếp theo, hiểu item-based collaborative filtering: một người đã xem A và B có thể thích C nếu nhiều người khác thường xem C cùng A/B. Mô hình tuyến tính cộng các tín hiệu này. Không có tầng neural sâu không có nghĩa mô hình yếu; ma trận tương quan giữa hàng nghìn item vẫn có nhiều tham số.
+
+Lộ trình đọc nên là: xem định nghĩa X và B ở §1.1; đọc mục tiêu EASE ở phương trình (1); tự làm ví dụ Mục 7 của tài liệu này; đọc propensity ở phương trình (9)–(10); cuối cùng đọc phép nhân hậu xử lý ở phương trình (13). Khi chưa hiểu phép nhân tác động lên **cột** nào, hãy hoãn phần SANSA. Đây là điểm dễ nhầm nhưng quyết định ý nghĩa sửa popularity.
+
+Một câu hỏi tự kiểm: nếu nhân toàn bộ điểm của một user với cùng một số dương, thứ tự có đổi không? Không. Vì vậy cơ chế cần trọng số khác nhau theo item, chứ không chỉ thay đổi thang đo chung của user.
+
+## 3. Bài toán, đầu vào, đầu ra và giả định
+
+Đầu vào học là X kích thước m×n và tham số regularization λ. Đầu vào phục vụ user mới là một vector lịch sử x dài n. Đầu ra mô hình là B kích thước n×n; điểm dự báo là s=xB. Sau weighting, đầu ra thay thành s'=s⊙w. Chọn top-K trong các item chưa tương tác để tạo danh sách.
+
+Trong B, phần tử Bᵢⱼ biểu diễn đóng góp từ tương tác với item i sang điểm item j. B không nhất thiết đối xứng, không phải xác suất và có thể có phần tử âm. Điểm âm không tự là lỗi: mô hình có thể học rằng một tương tác làm giảm điểm item khác. Khi wⱼ dương, nhân một điểm âm với trọng số lớn làm điểm đó âm hơn; đừng diễn đạt rằng mọi item tail đều chắc chắn được tăng điểm.
+
+Giả định vận hành quan trọng là item của user kiểm thử thuộc cùng không gian cột đã học. Với item hoàn toàn mới, không có cột đáng tin cậy chỉ nhờ công thức propensity. New user cũng phải có ít nhất một số tương tác làm input. Đây là strong generalization theo user có lịch sử khả dụng, khác với cold user không có lịch sử.
+
+Với đề tài CSE631, IPS-LAE hữu ích ở hai vị trí: một backbone tạo candidates ít thiên lệch popularity hơn; hoặc một policy điều chỉnh điểm dùng làm baseline mạnh. Nó chưa cung cấp quota exposure toàn batch hoặc giới hạn diversity theo genre. Do đó phải đo phần đóng góp thêm của reranker sau khi đã so với correction này.
+
+## 4. Công trình trước đã làm gì và gap nào thực sự còn lại?
+
+EASE cho một cách học quan hệ item–item đơn giản bằng bình phương tối thiểu có regularization. EDLAE đưa thêm cơ chế denoising/dropout; RDLAE điều chỉnh ràng buộc đường chéo; SANSA dùng cấu trúc thưa để giảm gánh nặng ma trận lớn. Các tên này là những baseline cần đọc trong mục Related Work của bài, không phải bốn phương pháp do IPS-LAE mới phát minh.
+
+IPS là ý tưởng dùng nghịch đảo xác suất quan sát để bù dữ liệu thiếu có thiên lệch. Điểm khó nằm ở việc xác suất ấy thường không quan sát được. “Item có nhiều lượt tương tác” không đồng nghĩa “xác suất được nhìn thấy là một”. Những nhà cung cấp có cộng đồng lớn có thể nhận nhiều lượt dù tần suất giới thiệu trên mỗi người thấp.
+
+Gap thực dụng mà bài nhắm tới là lựa chọn hàm trọng số: correction dựa power law có thể tạo chênh lệch lớn không mong muốn; cần một hàm mềm và có thể cập nhật rẻ. Đối với luận văn, gap tiếp theo phải hẹp hơn: khi cùng candidate pool, correction này có giúp ILD/exposure hay chỉ coverage? Nếu thêm constraint exposure mà không so IPS-LAE, lợi ích có thể chỉ do đã vô tình xây một popularity correction yếu hơn rồi đặt tên mới.
+
+Không nên tuyên bố “đã giải quyết MNAR” chỉ vì công thức cho p nằm trong (0,1). Một hàm có giá trị giống xác suất chưa chứng minh nó được hiệu chuẩn theo cơ chế quan sát thực. Luận văn cần tách **mô hình hóa propensity** với **nhận diện xác suất nhân quả**.
+
+## 5. Bảng ký hiệu và phương trình cốt lõi
+
+| Ký hiệu | Ý nghĩa | Ví dụ đơn vị |
+|---|---|---|
+| m, n | Số user và item | 4 user, 3 item trong toy |
+| X | Ma trận tương tác | m×n, nhị phân |
+| B | Hệ số item–item | n×n, số thực |
+| λ | Hệ số ridge | Dương trong ví dụ |
+| fᵢ | Số tương tác item i | Đếm từ train |
+| α, β | Giao điểm và độ dốc log-sigmoid | Không phải λ của reranker |
+| pᵢ, wᵢ | Propensity mô hình hóa, nghịch đảo của nó | wᵢ=1/pᵢ |
+| G, P | Gram có regularization, nghịch đảo của G | n×n |
+
+Viết lại mục tiêu EASE trong phương trình (1) bằng ký hiệu của tài liệu:
+
+J(B)=||X−XB||²_F+λ||B||²_F, với Bⱼⱼ=0.
+
+Chuẩn Frobenius là tổng bình phương mọi phần tử sai số. Nếu cho phép B=I thì XB=X, mô hình chỉ chép lại dữ liệu; vì thế đường chéo bị khóa bằng 0. Regularization không phải “trừ điểm popularity” trực tiếp: nó hạn chế độ lớn hệ số, giúp nghiệm ổn định.
+
+Với G=XᵀX+λI, P=G⁻¹, nghiệm có dạng Bᵢⱼ=−Pᵢⱼ/Pⱼⱼ khi i≠j; Bⱼⱼ=0. Phương trình (9)–(10) của bài xác định pᵢ=σ(α+βlog(fᵢ+1)) và α=−β[min log(f+1)+max log(f+1)]/2. Kết quả weighting ở phương trình (13) là B'=B·diag(w). [Đối chiếu công thức](https://arxiv.org/html/2512.20896v1).
+
+Từ định nghĩa, tự biến đổi được wᵢ=1+exp(−α)(fᵢ+1)^(−β). Đây là diễn giải đại số: với β>0, w giảm theo f nhưng tiến về 1 khi f rất lớn. β=0 làm p=1/2 cho mọi item, w=2; thứ tự không đổi vì mọi cột được nhân cùng hệ số. Đây là sanity check rất tốt khi lập trình.
+
+## 6. Chứng minh lại phép nhân hậu xử lý, từng bước
+
+Phần này là chứng minh giảng dạy độc lập của đẳng thức, dựa trên cấu trúc bài toán bình phương tối thiểu; không phải phát biểu thêm định lý của tác giả.
+
+Tách J thành n bài toán theo cột. Với cột j, target ban đầu là xⱼ=X[:,j], vector cần học là bⱼ, và ràng buộc là phần tử thứ j của bⱼ bằng 0. Sau weighting target thành wⱼxⱼ. Trên các tọa độ tự do, điều kiện tối ưu là (X_freeᵀX_free+λI)b_free=X_freeᵀxⱼ. Vì λ>0, ma trận phía trái xác định dương nên nghiệm là duy nhất.
+
+Khi thay target thành wⱼxⱼ, vế phải nhân wⱼ trong khi ma trận phía trái giữ nguyên. Do tính tuyến tính của hệ phương trình, nghiệm mới đúng bằng wⱼ lần nghiệm cũ. Lặp cho mọi j cho B'=Bdiag(w). Không cần tính lại nghịch đảo cho mỗi β nếu giữ backbone và λ cố định.
+
+Phép suy luận này có điều kiện. w phải cố định khi giải theo B; mục tiêu vẫn là target scaling với cùng ridge. Nếu thay bằng trọng số từng user–item trong loss, thêm penalty liên kết nhiều cột, hoặc đặt constraint phi tuyến, kết luận có thể không còn đúng. Nếu thay cả λ giữa hai cấu hình thì không thể quy mọi thay đổi cho weighting.
+
+Chi phí bổ sung nhân n cột của B dày là O(n²); nhân trọng số trực tiếp vào một vector điểm là O(n). Điều này không xóa chi phí O(n²) lưu ma trận nền, hoặc chi phí factorization/inversion. Với n=20.000, một ma trận float64 có 400 triệu phần tử, khoảng 3,2 GB theo hệ thập phân. G, P, B và các bản sao đồng thời có thể vượt RAM16GB. Vì vậy nên bắt đầu ML1M hoặc xử lý theo block/sparse, không chỉ nhìn độ dài mấy dòng code.
+
+## 7. Ví dụ giảng dạy tự xây dựng và tính tay
+
+**Đây là toy nguyên bản, không phải bảng dữ liệu trong paper.** Có bốn user và ba item A,B,C:
+
+| User | A | B | C |
+|---|---:|---:|---:|
+| u1 | 1 | 1 | 0 |
+| u2 | 1 | 0 | 1 |
+| u3 | 1 | 0 | 0 |
+| u4 | 0 | 1 | 0 |
+
+Counts là f=(3,2,1). Với λ=1, tính XᵀX rồi cộng I cho G=[[4,1,1],[1,3,0],[1,0,2]]. Nghịch đảo là P=(1/19)[[6,−2,−3],[−2,7,1],[−3,1,11]]. Kiểm tra một phần tử: tích hàng1 G với cột1 P bằng (24−2−3)/19=1; tích với cột2 bằng (−8+7+1)/19=0.
+
+Chia từng cột theo −Pⱼⱼ và xóa diagonal được B=[[0,2/7,3/11],[1/3,0,−1/11],[1/2,−1/7,0]]. User có input [1,0,0] nhận điểm [0;0,285714;0,272727], dùng chấm phẩy để phân tách ba phần tử. Loại A vì đã tương tác; ban đầu B đứng trên C.
+
+Đặt β=1. Log-count là (ln4,ln3,ln2); trung điểm bằng (ln4+ln2)/2=1,039721 nên α=−1,039721. Logits của A/B/C lần lượt 0,346574; 0,058892; −0,346574. Qua sigmoid: p≈(0,585786;0,514719;0,414214), rồi w≈(1,707107;1,942809;2,414214).
+
+Nhân điểm theo cột: B nhận (2/7)×1,942809≈0,555088; C nhận (3/11)×2,414214≈0,658422. Kết quả thứ tự unseen đổi từ B,C thành C,B. Đây là điều minh họa cơ chế; chưa thể nói accuracy tăng vì toy chưa cung cấp nhãn kiểm thử hay một phép đo accuracy.
+
+Code đi kèm `Vi_du_chay_tay/07_IPS_LAE.py` còn giải độc lập từng hệ phương trình trên các tọa độ tự do để đối chiếu nghiệm weighted. Lệnh:
+
+```bash
+python3 Vi_du_chay_tay/07_IPS_LAE.py
+```
+
+Kết quả kiểm tra đã chạy có `weighted_scores [0. 0.555088 0.658422]` và `closed_form_matches_constrained_solve=True`. Assertion chỉ xác minh toy đại số, không thay kiểm định trên ML20M.
+
+## 8. Mã nguồn thật: đọc file nào, chạy lệnh nào?
+
+Trong [main.py](https://raw.githubusercontent.com/cars1015/IPS-LAE/main/main.py), đọc `CORR.compute_inv_propensity_logsigmoid`, `CORR._apply_weighting`, `CORR.fit_model`, rồi `run_experiment`. `fit_model` tạo Gram dày, cộng regularization, đảo ma trận và dùng weighting; `run_experiment` nhân input test với B, mask item đã thấy bằng −∞ và tính metrics. Đây là code map từ đọc nguồn, chưa phải log chạy chính thức.
+
+[environment.yml](https://raw.githubusercontent.com/cars1015/IPS-LAE/main/environment.yml) ghi Python3.11.5, NumPy1.24.3, pandas2.0.3, SciPy1.11.1, bottleneck1.3.5, scikit-learn1.3.0, scikit-sparse0.4.16. Đây là môi trường khai báo, không phải xác nhận cài được trên mọi OS. `scikit-sparse` liên quan CHOLMOD; nhánh SANSA còn có mã `sansa_inv`. [sansa.py](https://raw.githubusercontent.com/cars1015/IPS-LAE/main/sansa.py) là điểm bắt đầu kiểm tra nhánh sparse.
+
+Lệnh chính thức trong README:
+
+```bash
+conda env create -f environment.yml
+conda activate IPS-LAE
+./run.sh ml-20m
+./run_sansa.sh ml-20m
+```
+
+Các lệnh đòi dữ liệu đã preprocessing đúng vị trí, nên không coi việc gõ lệnh là đã tái lập. [run.sh](https://raw.githubusercontent.com/cars1015/IPS-LAE/main/run.sh) chứa lựa chọn λ/β/dropout theo dataset; weighted/unweighted đôi khi dùng λ khác nhau. Khi làm ablation riêng của luận văn, cần thêm so sánh giữ λ cố định để phân biệt weighting với tuning.
+
+Một khác biệt cần ghi rõ: `EVAL.Recall` dùng hit/min(K,số positive), trong khi nhiều luận văn dùng hit/số positive. Hai convention khác nhau khi user có hơn K positives. NDCG dùng ideal gain theo min(K,số positive). Cần đặt tên/convention rõ, không âm thầm so hai con số Recall khác mẫu số.
+
+## 9. Thực nghiệm gốc và cách đọc kết quả có giới hạn
+
+Protocol strong generalization chia users thành các nhóm rời nhau. Với user test, phần lịch sử làm input và phần held-out làm target. Hãy hình dung user test không có hàng trong X học, nhưng item test vẫn thuộc catalog học. Vì vậy mô hình học B có thể dùng x của user mới mà không cần embedding user đã train.
+
+Đối sánh nên tách hai câu hỏi: weighted có lợi so cùng họ unweighted không; và lợi ích có ổn định khi mô hình nền đã giảm popularity bias không? Bảng 1 cho câu trả lời theo dataset, không cho định luật mọi trường hợp. Ví dụ MSD có coverage nền gần trần; biên cải thiện còn rất nhỏ. Tăng coverage tuyệt đối từ 0,21 lên0,71 khác hoàn toàn từ0,98 lên0,99, dù cả hai đều có mũi tên tăng.
+
+Tài liệu nguồn đã đọc không cung cấp đủ căn cứ để ghi cứng loại CPU/GPU và peak RAM cho mọi thí nghiệm; để là **chưa xác minh**, thay vì suy rằng mô hình tuyến tính chắc chắn chạy không cần nhiều RAM. Số lần seed, CI và một tolerance NDCG cụ thể cho việc chọn β cần kiểm tra thêm trước tái lập đầy đủ.
+
+Với CSE631, hãy bổ sung global temporal split, ML1M và một dataset thương mại điện tử. Tạo counts từ train; dùng validation chọn β; không đọc test để đặt weight. Báo NDCG/Recall theo convention thống nhất, ILD, catalog coverage, Gini exposure gồm cả item0 exposure, head share và peak RAM. Khi so rerankers, đóng băng cùng candidate cache.
+
+## 10. Đóng góp, hạn chế và những điều không được suy ra
+
+Đóng góp cần ghi đúng là hàm propensity mềm và cách khai thác linear autoencoder để weighting linh hoạt; không phải bằng chứng thu thập được xác suất exposure thật. Hạn chế từ dữ liệu/thiết kế gốc gồm bài toán offline và metric coverage đại diện cho diversity. Nhận xét của tài liệu: chưa có quota provider, ILD thể loại, stress temporal drift hoặc cold item thật. Những mục “chưa có” ở đây chỉ giới hạn công trình đã đọc, không có nghĩa chưa ai trên thế giới làm.
+
+Coverage có thể tăng nhờ đẩy nhiều item lên một lần nhưng head vẫn chiếm gần hết slot; vì vậy không chuyển “coverage tăng” thành “exposure công bằng”. Cũng không lấy NDCG tăng0,0014 để kết luận có ý nghĩa thống kê khi chưa xem CI hoặc kiểm định. Đặc biệt khi nhiều hyperparameters đã thử, test tốt nhất có thể là kết quả lựa chọn thiên lệch.
+
+## 11. Ba hướng cải tiến kiểm chứng được
+
+**Hướng A: uncertainty-aware weights.** Ước lượng counts theo block thời gian trong train, so log-sigmoid dùng point estimate với bản shrinkage hoặc bootstrap. Prior art gần nhất là chính IPS-LAE; thêm clipping đơn giản làm baseline. Ablation bỏ uncertainty, giữ β và candidate pool. Bác bỏ giả thuyết nếu lợi ích biến mất khi cùng tuning budget hoặc nếu chỉ tăng coverage bằng cách làm NDCG loss lớn hơn.
+
+**Hướng B: correction cộng exposure constraint.** Dùng IPS-LAE như baseline điểm, thêm reranker có upper head budget và diversity minimum. So IPS-LAE đơn lẻ, MMR, ElasticRank, reranker không weighting và bản đầy đủ. Phải báo feasibility vì điểm đã sửa không đưa được item chưa vào pool. Bác bỏ đóng góp nếu bản đầy đủ không tạo điểm trade-off tốt hơn hoặc chi phí vượt khả năng triển khai.
+
+**Hướng C: giới hạn tính toán theo catalog.** So dense EASE với sparse SANSA tại cùng peak RAM và thời gian. Phân tích chi phí của weighting trong tổng pipeline, không chỉ thời gian nhân vector. Có thể tìm điều kiện catalog mà sparse correction mất tác dụng vì cạnh cần thiết đã bị loại. Ablation sparsity0,5%/1%/5% có kiểm soát và cùng split. Kết quả chỉ đáng công bố khi có phát hiện ổn định và giải thích, không chỉ dựng lại bảng gốc trên dataset nhỏ hơn.
+
+## 12. Tài liệu tham khảo và câu hỏi tự kiểm
+
+Nguồn chính: [paper](https://arxiv.org/html/2512.20896v1), [publisher](https://doi.org/10.1145/3767695.3769512), [repo](https://github.com/cars1015/IPS-LAE), [main.py](https://raw.githubusercontent.com/cars1015/IPS-LAE/main/main.py), [run.sh](https://raw.githubusercontent.com/cars1015/IPS-LAE/main/run.sh), [environment](https://raw.githubusercontent.com/cars1015/IPS-LAE/main/environment.yml), [SANSA implementation](https://raw.githubusercontent.com/cars1015/IPS-LAE/main/sansa.py). Nguồn nền: [EASE, WWW2019](https://doi.org/10.1145/3308558.3313710), [MultVAE protocol/code](https://github.com/dawenl/vae_cf).
+
+Tự kiểm trước khi viết báo cáo: giải thích được vì sao weighting là nhân cột; tự suy ra β=0 không đổi ranking; tính đúng bộ nhớ ma trận; phân biệt Recall convention; mô tả user-disjoint khác temporal split; chứng minh toy đối chiếu được bằng giải trực tiếp. Khi trả lời được các câu này, người học đã có nền để tái lập một baseline có ý nghĩa thay vì chỉ chạy script.
+
+Bài tập thêm: giữ nguyên B và tăng β từ0 lên1, vẽ thứ tự của hai item unseen theo β. Tìm ngưỡng khi hai điểm bằng nhau và giải thích vai trò tỷ số w_C/w_B. Sau đó cho một điểm nền âm để xem việc “ưu tiên tail” còn đúng bằng lời hay không. Đây là bài tập đại số tự đề xuất, không phải kết quả paper.
+
+
+## Phụ lục A. Danh mục trích dẫn chuẩn hóa
+Các mục dưới đây ghi đủ tên công trình, năm/nơi công bố và link để tra cứu. Gồm bài chính và tài liệu đối chiếu cho luận văn; không khẳng định mọi mục đều nằm trong bibliography của bài gốc. Mã A1, A2… chỉ dùng trong phụ lục của tài liệu này.
+
+[A1] Kazuma Onishi, Katsuhiko Hayashi, Hidetaka Kamigaito. Accurate and Diverse Recommendations via Propensity-Weighted Linear Autoencoders. ACM SIGIR-AP 2025; công bố 06/12/2025. [DOI 10.1145/3767695.3769512](https://doi.org/10.1145/3767695.3769512). [Bài/toàn văn](https://arxiv.org/html/2512.20896v1); [code](https://github.com/cars1015/IPS-LAE).
+
+[A2] Kiryl Liakhnovich, Oleg Lashinin, Andrei Babkin, Michael Pechatov, Marina Ananyeva. SMMR: Sampling-Based MMR Reranking for Faster, More Diverse, and Balanced Recommendations and Retrieval. ACM SIGIR 2025, short paper, tr. 2754–2758. [DOI 10.1145/3726302.3730250](https://doi.org/10.1145/3726302.3730250). [Bài/toàn văn](https://www.hse.ru/data/2025/07/04/1995597406/%D0%90%D0%BD%D0%B0%D0%BD%D1%8C%D0%B5%D0%B2%D0%B0_%D1%81%D1%82%D0%B0%D1%82%D1%8C%D1%8F%2012.pdf); [code](https://github.com/kliakhnovich/smmr).
+
+[A3] Chen Xu, Zhirui Deng, Clara Rus, Xiaopeng Ye, Yuanna Liu, Jun Xu, Zhicheng Dou, Ji-Rong Wen, Maarten de Rijke. FairDiverse: A Comprehensive Toolkit for Fairness- and Diversity-aware Information Retrieval. ACM SIGIR 2025, resource paper, tr. 3540–3550. [DOI 10.1145/3726302.3730280](https://doi.org/10.1145/3726302.3730280). [Bài/toàn văn](https://pure.uva.nl/ws/files/304772377/3726302.3730280.pdf); [code](https://github.com/XuChen0427/FairDiverse).
+
+[A4] Steffen Rendle, Christoph Freudenthaler, Zeno Gantner, Lars Schmidt-Thieme. BPR: Bayesian Personalized Ranking from Implicit Feedback. UAI 2009, 460–469. [PMLR và PDF](https://proceedings.mlr.press/r7/rendle09a.html).
+
+[A5] Wayne Xin Zhao và cộng sự. RecBole: Towards a Unified, Comprehensive and Efficient Framework for Recommendation Algorithms. CIKM 2021. [DOI 10.1145/3459637.3482016](https://doi.org/10.1145/3459637.3482016); [code](https://github.com/RUCAIBox/RecBole).

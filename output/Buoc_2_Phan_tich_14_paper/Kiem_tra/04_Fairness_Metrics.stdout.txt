@@ -1,0 +1,5 @@
+ABCD old=0.250000 corrected_raw=0.125000 normalised=0.000000
+ACBD old=0.250000 corrected_raw=0.375000 normalised=0.333333
+CDAB old=0.750000 corrected_raw=0.875000 normalised=1.000000
+enumerated=24 min=0.125000 max=0.875000
+old_attention_k1=undefined; corrected_attention_k1=1.000000

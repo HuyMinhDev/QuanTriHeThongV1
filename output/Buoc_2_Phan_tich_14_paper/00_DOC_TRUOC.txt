@@ -1,0 +1,61 @@
+BƯỚC 2 — PHÂN TÍCH CHI TIẾT 14 BÀI BÁO TRỌNG TÂM
+Đề tài 07 / CSE631 — Accuracy, Diversity, Exposure Balanced Re-ranking
+Biên soạn và kiểm tra nguồn: 15/11/2026
+
+1. MỞ CÁC FILE WORD
+
+14 file 01_...docx đến 14_...docx tương ứng 14 bài trọng tâm của Bước 1.
+Mỗi file là một tài liệu riêng, không phải bảng tóm tắt ngắn: bài toán,
+prior art/gap, thuật ngữ, công thức và tính chất, chứng minh có điều kiện,
+thuật toán/mã giả, ví dụ số, đọc code, thực nghiệm, đóng góp, hạn chế,
+hướng phát triển và tài liệu tham khảo có liên kết.
+
+Nên đọc: 11_SMMR → 05_VRisker → 10_ElasticRank → 01_PFA.
+Tiếp đó đọc 04_Fairness_Metrics và 13_DPFR trước khi chốt cách đánh giá.
+12_FairDiverse hỗ trợ thống nhất pipeline. Những bài còn lại giúp chọn
+nhánh mở rộng, đối chiếu các mục tiêu và đánh giá cảm nhận người dùng.
+
+2. VÍ DỤ ĐÃ CHẠY
+
+Vi_du_chay_tay/ chứa 14 chương trình giảng giải tự viết, có kết quả
+kiểm tra đi kèm. Python 3; ví dụ 07_IPS_LAE cần NumPy, các ví dụ khác
+dùng thư viện chuẩn. Có thể chạy từng file để tính lại các bảng/toy.
+Ví dụ này không phải bản tái lập benchmark của tác giả.
+Kiem_tra/ ghi kết quả chạy kiểm tra mới nhất và cấu trúc các file Word.
+
+3. MÃ NGUỒN VÀ TOÀN VĂN
+
+Ma_nguon/ có 14 thư mục: SOURCE.md ghi đúng tệp/đoạn đã đọc, link chính
+thức và phần chưa truy cập được. Bao gồm trích đọc qua web và một số
+tệp thuật toán đã lấy được; KHÔNG phải 14 repository clone đầy đủ.
+Một số file chính không truy cập được qua web cache và đã được nêu rõ.
+
+Tai_lieu_goc/ có link bài, DOI, repo cho từng paper và script tải nguồn.
+Phiên biên soạn không tải trực tiếp được PDF/Git clone do kênh mạng
+shell không phân giải được GitHub; các bài được đọc qua nguồn web.
+Muốn tải PDF/repo đầy đủ trên máy có Internet, chạy từ thư mục gói:
+
+  python3 Tai_lieu_goc/TAI_NGUON_CHINH_THUC.py
+  python3 Tai_lieu_goc/TAI_NGUON_CHINH_THUC.py --download
+
+Lệnh đầu chỉ liệt kê; lệnh sau tải nguồn, không cài hoặc chạy training.
+Có thể thêm --paper 11 để chọn một bài. Publisher có thể cần quyền truy
+cập; dùng link Word và README gốc khi link tải tự động không hoạt động.
+Không coi việc có repo là đã có dataset, model weights hoặc API key.
+
+4. CÁCH DÙNG CHO LUẬN VĂN
+
+Kết quả tác giả, ví dụ tự xây dựng, nhận xét đọc code và hướng phát triển
+được phân biệt trong từng tài liệu. Chưa chạy huấn luyện chính thức hoặc
+tái lập toàn bộ các thí nghiệm gốc. Các nhận xét về công thức/code là
+điểm kiểm tra có căn cứ, không được trích thành kết luận đã thực nghiệm
+chứng minh mọi kết quả của bài gốc sai.
+
+Chọn một hướng và đọc tiếp prior art sát cơ chế; không xem một ý tưởng
+thêm trọng số hay ghép nhiều mục tiêu là tính mới đã được xác lập.
+Nguon_bien_soan/ giữ bản Markdown và công cụ tạo Word để sửa có kiểm soát.
+PROMPT_PHAN_TICH_PAPER.txt là prompt dùng chung cho các bài bổ sung.
+
+Gói này được biên soạn với hỗ trợ AI theo yêu cầu người học; người học
+cần đọc nguồn, kiểm chứng và tuân thủ quy định sử dụng AI của cơ sở đào tạo.
+Thư mục đã được gom để người học gửi Thầy; chưa gửi qua email hay ứng dụng.

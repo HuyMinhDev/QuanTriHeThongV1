@@ -1,0 +1,8 @@
+mean group loss= [2.0, 2.0]
+f(mean)=8.000000 mean(f)=16.000000 Jensen gap=8.000000
+max(mean)=2.000000 mean(max)=4.000000
+weights= [1.2, 0.9, 1.05]
+losses= [0.693147, 0.223144, 0.510826]
+unweighted=1.427116 weighted=1.568973
+bound-audit B=100 eta=.1 H/eta=10.000000
+bound-audit B=400 eta=.05 H/eta=20.000000

@@ -1,0 +1,5 @@
+step 2 candidates ['B', 'C', 'D'] scores [-0.05, 0.4, 0.35] probabilities [0.006867, 0.618185, 0.374948] uniform 0.9 chosen D
+step 3 candidates ['B', 'C'] scores [-0.05, -0.1] probabilities [0.622459, 0.377541] uniform 0.2 chosen B
+ranking ['A', 'D', 'B'] mean_relevance 0.85
+paper_batch_sizes_K20_s2 [1, 2, 4, 8, 5]
+All teaching checks passed.

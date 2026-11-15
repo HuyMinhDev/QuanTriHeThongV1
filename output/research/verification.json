@@ -1,0 +1,11 @@
+{
+  "zip": "OK",
+  "xml": "all valid",
+  "paper_cards": "14/14 complete, 9 required content fields each",
+  "references": "27/27 present",
+  "hyperlink_targets": 66,
+  "tables": 11,
+  "size_bytes": 76374,
+  "textutil_conversion": "passed in prior command",
+  "full_visual_pagination": "not verified: Quick Look sandbox initialization failed"
+}

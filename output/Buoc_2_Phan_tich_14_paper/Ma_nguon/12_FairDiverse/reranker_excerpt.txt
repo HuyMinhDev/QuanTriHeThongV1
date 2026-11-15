@@ -1,0 +1,8 @@
+PROVENANCE: RecReRanker, raw official source read 2026-11-15.
+URL: https://raw.githubusercontent.com/XuChen0427/FairDiverse/master/fairdiverse/recommendation/reranker.py
+Not a complete executable module.
+
+config.update(self.train_config)
+ranking_scores = load_npz(file).toarray()
+
+Editorial notes: custom config has the final override in this load path; the reranker materializes cached scores as a dense array. Memory must therefore be checked using actual dimensions, not the compressed file size alone.

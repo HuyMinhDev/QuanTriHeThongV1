@@ -1,0 +1,17 @@
+lambda=0.01
+  AB objective=1.8562
+  AC objective=1.8117
+  AD objective=1.7325
+  BC objective=1.7919
+  BD objective=1.7127
+  CD objective=1.6582
+best: A,B
+lambda=0.10
+  AB objective=1.6420
+  AC objective=1.6470
+  AD objective=1.5750
+  BC objective=1.6290
+  BD objective=1.5570
+  CD objective=1.4620
+best: A,C
+illustrative_fidelity=0.875

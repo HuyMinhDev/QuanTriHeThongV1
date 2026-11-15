@@ -1,0 +1,228 @@
+{
+  "status": "passed",
+  "word_documents": [
+    {
+      "id": 1,
+      "file": "01_PFA.docx",
+      "characters": 18675,
+      "hyperlink_targets": 17,
+      "sha256": "65117b52ec3fe574a53ee45104811c01803d2ca6162c87c9d1ecc8a8c7ac848c",
+      "zip_xml": "valid",
+      "native_textutil_conversion": "passed"
+    },
+    {
+      "id": 2,
+      "file": "02_Behind_ReRank.docx",
+      "characters": 19262,
+      "hyperlink_targets": 13,
+      "sha256": "47bbd0745035d05d479379a538f23f9c1558e186779ebe7c85aeede5be13f691",
+      "zip_xml": "valid",
+      "native_textutil_conversion": "passed"
+    },
+    {
+      "id": 3,
+      "file": "03_ADF.docx",
+      "characters": 19085,
+      "hyperlink_targets": 17,
+      "sha256": "05b1a1c1ef5de6f52865fb2bbd4395ff610d3c83e6847e73617d193868180ad3",
+      "zip_xml": "valid",
+      "native_textutil_conversion": "passed"
+    },
+    {
+      "id": 4,
+      "file": "04_Fairness_Metrics.docx",
+      "characters": 19395,
+      "hyperlink_targets": 15,
+      "sha256": "8a595d928e1c69233b6f7a9d0175b01c413d671ac3d6034d2e6794dc86c0e4c4",
+      "zip_xml": "valid",
+      "native_textutil_conversion": "passed"
+    },
+    {
+      "id": 5,
+      "file": "05_VRisker.docx",
+      "characters": 20643,
+      "hyperlink_targets": 18,
+      "sha256": "d91ec618b681fee25a08ce504d635e83e54a920a1c17b566e8e87b4e63ddc8d7",
+      "zip_xml": "valid",
+      "native_textutil_conversion": "passed"
+    },
+    {
+      "id": 6,
+      "file": "06_CatDive.docx",
+      "characters": 19520,
+      "hyperlink_targets": 17,
+      "sha256": "3879451542bea267ab1fdcb847e35b0abd51ceae30fd225da38fbc93a3462a61",
+      "zip_xml": "valid",
+      "native_textutil_conversion": "passed"
+    },
+    {
+      "id": 7,
+      "file": "07_IPS_LAE.docx",
+      "characters": 17617,
+      "hyperlink_targets": 19,
+      "sha256": "deb614bb593762363c7ed89b9341c0cbf34f24560edc46a7edd242f2556e342c",
+      "zip_xml": "valid",
+      "native_textutil_conversion": "passed"
+    },
+    {
+      "id": 8,
+      "file": "08_LLM_Reranking.docx",
+      "characters": 19652,
+      "hyperlink_targets": 16,
+      "sha256": "98d486d4a97f5209e0bf85df39d780bb668d2f895cfd1ee7842f2bf5c631577b",
+      "zip_xml": "valid",
+      "native_textutil_conversion": "passed"
+    },
+    {
+      "id": 9,
+      "file": "09_SCRUF_D.docx",
+      "characters": 19121,
+      "hyperlink_targets": 16,
+      "sha256": "02adde3a53c6cc229538bae3ee9acacf1bc42f78a104e335427107373b4a41bc",
+      "zip_xml": "valid",
+      "native_textutil_conversion": "passed"
+    },
+    {
+      "id": 10,
+      "file": "10_ElasticRank.docx",
+      "characters": 18490,
+      "hyperlink_targets": 20,
+      "sha256": "c41dd20e83ae8076a014118e16c1ec4cebe05293126e905992d949a7e9db9564",
+      "zip_xml": "valid",
+      "native_textutil_conversion": "passed"
+    },
+    {
+      "id": 11,
+      "file": "11_SMMR.docx",
+      "characters": 20334,
+      "hyperlink_targets": 10,
+      "sha256": "5e5105320b46df3dc183254f5e97b9047ebda933dbd1ae8d4e70e4de1e576ad0",
+      "zip_xml": "valid",
+      "native_textutil_conversion": "passed"
+    },
+    {
+      "id": 12,
+      "file": "12_FairDiverse.docx",
+      "characters": 19707,
+      "hyperlink_targets": 17,
+      "sha256": "48b41cb4fadd3cd72d7550051399b6e5b095ccd3a43b5b9f81a532e837ddebf1",
+      "zip_xml": "valid",
+      "native_textutil_conversion": "passed"
+    },
+    {
+      "id": 13,
+      "file": "13_DPFR.docx",
+      "characters": 19075,
+      "hyperlink_targets": 17,
+      "sha256": "5d8ad4b253e8ad743bf2083a64e9ffba5d2902760857bc08f2e3360398be5b49",
+      "zip_xml": "valid",
+      "native_textutil_conversion": "passed"
+    },
+    {
+      "id": 14,
+      "file": "14_FairDual.docx",
+      "characters": 20107,
+      "hyperlink_targets": 18,
+      "sha256": "d5b3a22d95773ac689e081b6a1ed49f3e313f51daf26b8a8eb184698ad59e364",
+      "zip_xml": "valid",
+      "native_textutil_conversion": "passed"
+    }
+  ],
+  "teaching_examples": [
+    {
+      "file": "01_PFA.py",
+      "returncode": 0,
+      "matches_preexisting_expected": null,
+      "stdout_sha256": "b89351e590ffbda21b19d04fbca4e94e27a11ace0139af8ddc8059e3f35b45ab"
+    },
+    {
+      "file": "02_Behind_ReRank.py",
+      "returncode": 0,
+      "matches_preexisting_expected": true,
+      "stdout_sha256": "987bd08aa973afe9df7f96ffbe7c5d68f0c3b0c78c01befaa7e6724de9fce8cf"
+    },
+    {
+      "file": "03_ADF.py",
+      "returncode": 0,
+      "matches_preexisting_expected": true,
+      "stdout_sha256": "d676ea688570b86f5cae7542b8b2a126f05a2a6dcb1de808ebd1ffec328d498b"
+    },
+    {
+      "file": "04_Fairness_Metrics.py",
+      "returncode": 0,
+      "matches_preexisting_expected": null,
+      "stdout_sha256": "f117a9d580ba3f92476ebdb1b6f931e6920da87ce56e8003046116b88b8eb5d7"
+    },
+    {
+      "file": "05_VRisker.py",
+      "returncode": 0,
+      "matches_preexisting_expected": null,
+      "stdout_sha256": "6822bb88e5e997a0fb429660f34948ee13da2e01378d8d830222fd3d052f781a"
+    },
+    {
+      "file": "06_CatDive.py",
+      "returncode": 0,
+      "matches_preexisting_expected": true,
+      "stdout_sha256": "5d1649d1d3c8adf3f419d5da460a8bd2374903695d2ed15d027af1066c5901de"
+    },
+    {
+      "file": "07_IPS_LAE.py",
+      "returncode": 0,
+      "matches_preexisting_expected": null,
+      "stdout_sha256": "febbe3b7b932b7764791a7f1e4bfc992f6397a4e853acf7b20b88906647c2cc9"
+    },
+    {
+      "file": "08_LLM_Reranking.py",
+      "returncode": 0,
+      "matches_preexisting_expected": true,
+      "stdout_sha256": "5256258c2f52e4740d340142437210e5fd45d98b23ee5639dc7eef91a7a1676c"
+    },
+    {
+      "file": "09_SCRUF_D.py",
+      "returncode": 0,
+      "matches_preexisting_expected": null,
+      "stdout_sha256": "5cce69798ebbf798182bb91e22ad41b8b758a58a59001057aff25f2a11be8e95"
+    },
+    {
+      "file": "10_ElasticRank.py",
+      "returncode": 0,
+      "matches_preexisting_expected": null,
+      "stdout_sha256": "9d7d19b1d4aae8edb67d67d0131eba978b5eff5572b0fc568531261e27731dee"
+    },
+    {
+      "file": "11_SMMR.py",
+      "returncode": 0,
+      "matches_preexisting_expected": null,
+      "stdout_sha256": "7e7af08ebb6f5965fcf4a02f85b110b19252ee0280adebeedac30d1172271479"
+    },
+    {
+      "file": "12_FairDiverse.py",
+      "returncode": 0,
+      "matches_preexisting_expected": null,
+      "stdout_sha256": "fb67a7fe7a928f0769418c6efe73ec759d1b566273e0291c4561708f8e934a67"
+    },
+    {
+      "file": "13_DPFR.py",
+      "returncode": 0,
+      "matches_preexisting_expected": null,
+      "stdout_sha256": "a10998b794616385c874b325c8d652a7351c16494681542f09e6f162fe053a9d"
+    },
+    {
+      "file": "14_FairDual.py",
+      "returncode": 0,
+      "matches_preexisting_expected": null,
+      "stdout_sha256": "5f490f8807b74827b724bfeeec1198d58dcd2b83158bbfcea22d1fbf527f933c"
+    }
+  ],
+  "original_benchmarks_run": false,
+  "full_repositories_cloned": false,
+  "paper_pdf_files_downloaded": false,
+  "download_helper_offline_list": "passed",
+  "visual_pagination": "not verified; document XML and native text conversion verified",
+  "teaching_execution_environment": {
+    "python": "3.14.3",
+    "numpy": "2.4.4",
+    "os": "Darwin",
+    "architecture": "arm64"
+  }
+}
